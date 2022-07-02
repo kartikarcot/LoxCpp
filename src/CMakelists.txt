@@ -1,3 +1,4 @@
-add_executable(cpplox main.cpp)
+add_executable(cpplox main.cpp token.cpp lox.cpp)
+target_include_directories(cpplox PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(cpplox PRIVATE spdlog)
 install(TARGETS cpplox DESTINATION ${INSTALL_DESTINATION}) 
