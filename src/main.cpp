@@ -1,12 +1,13 @@
 #include "stdio.h"
 #include "spdlog/spdlog.h"
 #include <filesystem>
+#include <iostream>
 #include <fstream>
 
 namespace fs = std::filesystem;
 
 void run(std::string lox_code) {
-	spdlog::info("The contents are\n{0}",lox_code);
+	spdlog::info("{0}",lox_code);
 }
 
 std::string read_file_into_string(std::string file_path) {
@@ -24,6 +25,14 @@ std::string read_file_into_string(std::string file_path) {
 	return contents;
 }
 
+void run_prompt() {
+	std::string line;
+	while(true) {
+		std::getline(std::cin, line);
+		run(line);
+	}
+}
+
 void run_file(std::string file_path) {
 	std::string contents = read_file_into_string(file_path);
 	run(contents);
@@ -31,8 +40,7 @@ void run_file(std::string file_path) {
 
 int main(int argc, char** argv) {
 	if (argc == 1) {
-		spdlog::info("Interactive mode not implemented yet");
-		return -1;
+		run_prompt();
 	} else if (argc == 2) {
 		std::string file_path = std::string(argv[1]);
 		run_file(file_path);
