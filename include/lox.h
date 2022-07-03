@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
+#include "scanner.h"
 
 class Lox {
-  bool had_error = false;
+  bool had_error_ = false;
+	Scanner scanner;
 	public:
   void error(const std::string &message, int line_no);
   void report(const std::string &message, const std::string &where, int line_no);
