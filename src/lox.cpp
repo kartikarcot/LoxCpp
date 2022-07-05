@@ -1,6 +1,5 @@
 #include "lox.h"
 #include "spdlog/spdlog.h"
-#include <fstream>
 #include <iostream>
 #include "utils.h"
 
