@@ -19,6 +19,11 @@ void generate_base_ast(std::string &ast_code, const std::string &class_name) {
   buffer.write_line("return v->visit(this);");
   buffer.decrease_indent();
   buffer.write_line("}");
+  buffer.write_line("virtual std::string print_type() {");
+  buffer.increase_indent();
+  buffer.write_line("return \"Expr\";");
+  buffer.decrease_indent();
+  buffer.write_line("}");
   buffer.decrease_indent();
   buffer.decrease_indent();
   buffer.decrease_indent();
@@ -61,6 +66,11 @@ void generate_ast(const std::string &rule, const std::string &base_name,
   for (const auto &item : components) {
     buffer.write_line("%s* %s;", item.first.c_str(), item.second.c_str());
   }
+  buffer.write_line("virtual std::string print_type() {");
+  buffer.increase_indent();
+  buffer.write_line("return \"%s\";", class_name.c_str());
+  buffer.decrease_indent();
+  buffer.write_line("}");
   buffer.decrease_indent();
   buffer.decrease_indent();
   buffer.decrease_indent();

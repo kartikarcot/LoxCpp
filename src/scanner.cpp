@@ -57,7 +57,7 @@ void Scanner::chew_through_whitespace(size_t &idx) {
   return;
 }
 
-bool Scanner::parse_token(size_t &idx, Token *token) {
+bool Scanner::parse_token(size_t &idx) {
   char *str_ptr = source_.data() + idx;
   int max_len = 0;
   std::pair<TokenType, int> longest_match;
@@ -75,14 +75,17 @@ bool Scanner::parse_token(size_t &idx, Token *token) {
   }
   if (found) {
     // add only non-comment tokens
-    if (longest_match.first == TokenType::SLASH_SLASH) {
+    if (longest_match.first != TokenType::SLASH_SLASH) {
       auto &token = tokens_.emplace_back();
       token.token_type_ = longest_match.first;
       token.literal_string = std::string(source_, idx, longest_match.second);
       idx += longest_match.second;
       spdlog::info("{0} : {1}", token_type_to_str(token.token_type_),
                    token.literal_string);
-    }
+    } else {
+		// commend line go to end
+		idx = source_.size();
+	}
     return true;
   }
   return false;

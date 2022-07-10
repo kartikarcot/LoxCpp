@@ -5,8 +5,8 @@
 
 enum TokenType {
   // punctuation
-  LEFT_PAREN,  // [
-  RIGHT_PAREN, // ]
+  LEFT_PAREN,  // (
+  RIGHT_PAREN, // )
   LEFT_BRACE,  // {
   RIGHT_BRACE, // }
   COMMA,       // ,
