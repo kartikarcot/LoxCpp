@@ -20,12 +20,12 @@ void Parser::init(const std::vector<Token> &tokens) {
 }
 
 Expr *Parser::expression() {
-  spdlog::info("Parsing expression");
+  spdlog::debug("Parsing expression");
   return equality();
 }
 
 Expr *Parser::equality() {
-  spdlog::info("Parsing equality");
+  spdlog::debug("Parsing equality");
   Expr *expr;
   expr = comparison();
   if (expr == NULL) {
@@ -52,7 +52,7 @@ Expr *Parser::equality() {
 }
 
 Expr *Parser::comparison() {
-  spdlog::info("Parsing comparison");
+  spdlog::debug("Parsing comparison");
   Expr *expr;
   expr = term();
   if (expr == NULL) {
@@ -80,7 +80,7 @@ Expr *Parser::comparison() {
 }
 
 Expr *Parser::term() {
-  spdlog::info("Parsing term");
+  spdlog::debug("Parsing term");
   Expr *expr;
   expr = factor();
   if (expr == NULL) {
@@ -108,7 +108,7 @@ Expr *Parser::term() {
 }
 
 Expr *Parser::factor() {
-  spdlog::info("Parsing factor");
+  spdlog::debug("Parsing factor");
   Expr *expr;
   expr = unary();
   if (expr == NULL) {
@@ -136,7 +136,7 @@ Expr *Parser::factor() {
 }
 
 Expr *Parser::unary() {
-  spdlog::info("Parsing unary");
+  spdlog::debug("Parsing unary");
   if (match({BANG, MINUS})) {
     Token op;
     if (!previous(op)) {
@@ -153,7 +153,7 @@ Expr *Parser::unary() {
 }
 
 Expr *Parser::primary() {
-  spdlog::info("Parsing primary");
+  spdlog::debug("Parsing primary");
   if (match({LEFT_PAREN})) {
     Expr *expr = expression();
     if (!match({RIGHT_PAREN})) {
