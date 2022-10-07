@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 std::string read_file_into_string(const std::string &file_path);
 void report(const std::string &message, const std::string &where, int line_no);
