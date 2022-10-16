@@ -117,6 +117,59 @@ Object Evaluator::visit_literal(Literal *l) {
   return obj;
 }
 
+Object Evaluator::visit_binary(Binary *b) {
+  Object left_val = visit(b->left);
+  if (left_val.type == UNDEFINED) {
+    return left_val;
+  }
+  Object right_val = visit(b->right);
+  if (right_val.type == UNDEFINED) {
+    return right_val;
+  }
+  // handle the operators
+  switch (b->op->token_type_) {
+  case PLUS: {
+    break;
+  }
+  case MINUS: {
+    break;
+  }
+  case STAR: {
+    break;
+  }
+  case SLASH: {
+    break;
+  }
+  case BANG: {
+    break;
+  }
+  case BANG_EQUAL: {
+    break;
+  }
+  case EQUAL: {
+    break;
+  }
+  case EQUAL_EQUAL: {
+    break;
+  }
+  case GREATER: {
+    break;
+  }
+  case GREATER_EQUAL: {
+    break;
+  }
+  case LESS: {
+    break;
+  }
+  case LESS_EQUAL: {
+    break;
+  }
+  default: {
+    return false;
+  }
+  }
+}
+
 Object Evaluator::visit(Expr *e) {
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
@@ -135,6 +188,13 @@ Object Evaluator::visit(Expr *e) {
   if (l != nullptr) {
     return visit_literal(l);
   }
+  Grouping *g = nullptr;
+  g = dynamic_cast<Grouping *>(e);
+  if (g != nullptr) {
+    error("Grouping expression evaluation not implemented yet", b->op->line_no);
+    return Object();
+  }
+
   // Nothing matched we are returning
   return Object();
 }

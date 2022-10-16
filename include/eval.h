@@ -28,7 +28,7 @@ struct Object {
 class Evaluator {
 private:
   Object visit_unary(Unary *u);
-  Object visit_binary(Expr *e);
+  Object visit_binary(Binary *b);
   Object visit_literal(Literal *l);
 
 public:
