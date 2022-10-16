@@ -1,12 +1,20 @@
 add_subdirectory(tools)
 
-add_library(scanner scanner.cpp token.cpp utils.cpp)
-target_include_directories(scanner PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(scanner PUBLIC spdlog)
+add_library(token token.cpp utils.cpp)
+target_include_directories(token PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(token PUBLIC spdlog)
 
-add_library(parser parser.cpp token.cpp utils.cpp)
+add_library(scanner scanner.cpp utils.cpp)
+target_include_directories(scanner PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(scanner PUBLIC spdlog token)
+
+add_library(eval eval.cpp utils.cpp)
+target_include_directories(eval PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(eval PUBLIC spdlog token)
+
+add_library(parser parser.cpp utils.cpp)
 target_include_directories(parser PUBLIC ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(parser PUBLIC spdlog)
+target_link_libraries(parser PUBLIC spdlog token)
 
 add_library(printer printer.cpp)
 target_include_directories(printer PUBLIC ${CMAKE_SOURCE_DIR}/include)

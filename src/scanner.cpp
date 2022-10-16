@@ -51,6 +51,21 @@ const static std::unordered_map<TokenType, std::regex> token_to_regex = {
     {WHILE, std::regex("while")},
 };
 
+void static set_value(Token &token) {
+  // sets the literal void pointer to the value of the literal
+  // it is a number or string
+  if (token.token_type_ == NUMBER) {
+    token.literal = new float(atof(token.literal_string.c_str()));
+  } else if (token.token_type_ == STRING) {
+    token.literal = (void *)token.literal_string.c_str();
+  } else if (token.token_type_ == FALSE) {
+    token.literal = new bool(false);
+  } else if (token.token_type_ == TRUE) {
+    token.literal = new bool(true);
+  }
+  return;
+}
+
 void Scanner::chew_through_whitespace(size_t &idx) {
   while (idx < source_.size() && std::isspace(source_[idx]))
     idx++;
@@ -79,13 +94,14 @@ bool Scanner::parse_token(size_t &idx) {
       auto &token = tokens_.emplace_back();
       token.token_type_ = longest_match.first;
       token.literal_string = std::string(source_, idx, longest_match.second);
+      set_value(token);
       idx += longest_match.second;
       spdlog::info("{0} : {1}", token_type_to_str(token.token_type_),
                    token.literal_string);
     } else {
-		// commend line go to end
-		idx = source_.size();
-	}
+      // commend line go to end
+      idx = source_.size();
+    }
     return true;
   }
   return false;
