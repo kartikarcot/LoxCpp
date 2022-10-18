@@ -41,6 +41,117 @@ static bool is_truthy(const Object &value) {
   }
 }
 
+static inline bool is_same_type(const Object &val1, const Object &val2,
+                                const ObjectType *type_assert = NULL) {
+  if (!type_assert)
+    return val1.type == val2.type;
+  else
+    return val1.type == val2.type && val1.type == *type_assert;
+}
+
+static inline Object handle_plus(const Object &left_val,
+                                 const Object &right_val) {
+  // for now we handle only the addition of numbers
+  ObjectType floaty = FLOAT;
+  if (!is_same_type(left_val, right_val, &floaty)) {
+    return Object();
+  }
+  float &value1 = *((float *)left_val.val);
+  float &value2 = *((float *)right_val.val);
+  return {.type = FLOAT, .val = new float(value1 + value2)};
+}
+
+static inline Object handle_minus(const Object &left_val,
+                                  const Object &right_val) {
+  // for now we handle only the addition of numbers
+  ObjectType floaty = FLOAT;
+  if (!is_same_type(left_val, right_val, &floaty)) {
+    return Object();
+  }
+  float &value1 = *((float *)left_val.val);
+  float &value2 = *((float *)right_val.val);
+  return {.type = FLOAT, .val = new float(value1 - value2)};
+}
+
+static inline Object handle_star(const Object &left_val,
+                                 const Object &right_val) {
+  // for now we handle only the addition of numbers
+  ObjectType floaty = FLOAT;
+  if (!is_same_type(left_val, right_val, &floaty)) {
+    return Object();
+  }
+  float &value1 = *((float *)left_val.val);
+  float &value2 = *((float *)right_val.val);
+  return {.type = FLOAT, .val = new float(value1 * value2)};
+}
+
+static inline Object handle_slash(const Object &left_val,
+                                  const Object &right_val) {
+  // for now we handle only the addition of numbers
+  ObjectType floaty = FLOAT;
+  if (!is_same_type(left_val, right_val, &floaty)) {
+    return Object();
+  }
+  float &value1 = *((float *)left_val.val);
+  float &value2 = *((float *)right_val.val);
+  return {.type = FLOAT, .val = new float(value1 / value2)};
+}
+
+static inline Object handle_bang_equal(const Object &left_val,
+                                       const Object &right_val) {
+  if (is_same_type(left_val, right_val)) {
+    return Object();
+  }
+  switch (left_val.type) {
+  case FLOAT: {
+    float &value1 = *((float *)left_val.val);
+    float &value2 = *((float *)right_val.val);
+    return {.type = FLOAT, .val = new bool(value1 != value2)};
+  }
+  case STR: {
+    char *value1 = ((char *)left_val.val);
+    char *value2 = ((char *)right_val.val);
+    return {.type = BOOL, .val = new bool(strcmp(value1, value2) != 0)};
+  }
+  case BOOL: {
+    bool &value1 = *((bool *)left_val.val);
+    bool &value2 = *((bool *)right_val.val);
+    return {.type = BOOL, .val = new bool(value1 != value2)};
+  }
+  default: {
+    return {.type = BOOL, .val = new bool(false)};
+  }
+  }
+}
+
+static inline Object handle_equal_equal(const Object &left_val,
+                                        const Object &right_val) {
+  if (is_same_type(left_val, right_val)) {
+    return Object();
+  }
+  switch (left_val.type) {
+  case FLOAT: {
+    float &value1 = *((float *)left_val.val);
+    float &value2 = *((float *)right_val.val);
+    return {.type = FLOAT, .val = new bool(value1 == value2)};
+  }
+  case STR: {
+    char *value1 = ((char *)left_val.val);
+    char *value2 = ((char *)right_val.val);
+    return {.type = BOOL, .val = new bool(strcmp(value1, value2) == 0)};
+  }
+  case BOOL: {
+    bool &value1 = *((bool *)left_val.val);
+    bool &value2 = *((bool *)right_val.val);
+    return {.type = BOOL, .val = new bool(value1 == value2)};
+  }
+  default: {
+    return {.type = BOOL, .val = new bool(false)};
+  }
+  }
+}
+
+
 Object Evaluator::visit_unary(Unary *u) {
   Object value = visit(u->right);
   if (value.type == UNDEFINED) {
@@ -129,39 +240,47 @@ Object Evaluator::visit_binary(Binary *b) {
   // handle the operators
   switch (b->op->token_type_) {
   case PLUS: {
+    return handle_plus(left_val, right_val);
     break;
   }
   case MINUS: {
+    return handle_minus(left_val, right_val);
     break;
   }
   case STAR: {
+    return handle_star(left_val, right_val);
     break;
   }
   case SLASH: {
-    break;
-  }
-  case BANG: {
+    return handle_slash(left_val, right_val);
     break;
   }
   case BANG_EQUAL: {
-    break;
-  }
-  case EQUAL: {
+    return handle_bang_equal(left_val, right_val);
     break;
   }
   case EQUAL_EQUAL: {
+    return handle_equal_equal(left_val, right_val);
     break;
   }
   case GREATER: {
+    return handle_greater(left_val, right_val);
     break;
   }
   case GREATER_EQUAL: {
+    return handle_greater_equal(left_val, right_val);
     break;
   }
   case LESS: {
+    return handle_less(left_val, right_val);
     break;
   }
   case LESS_EQUAL: {
+    return handle_less_equal(left_val, right_val);
+    break;
+  }
+  case EQUAL: {
+    return handle_equal(left_val, right_val);
     break;
   }
   default: {
