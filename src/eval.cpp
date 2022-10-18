@@ -165,7 +165,7 @@ Object Evaluator::visit_binary(Binary *b) {
     break;
   }
   default: {
-    return false;
+    return Object();
   }
   }
 }

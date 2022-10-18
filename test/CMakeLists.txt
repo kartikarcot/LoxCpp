@@ -10,6 +10,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(test_lexer test_lexer.cpp)
 target_link_libraries(test_lexer PRIVATE scanner gtest)
+target_compile_definitions(test_lexer PUBLIC UNIT_TEST)
 add_test(NAME test_lexer COMMAND test_lexer)
 
 add_executable(test_eval test_eval.cpp)
