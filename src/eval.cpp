@@ -58,7 +58,7 @@ static inline Object handle_plus(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
-  return {.type = FLOAT, .val = new float(value1 + value2)};
+  return {FLOAT, new float(value1 + value2)};
 }
 
 static inline Object handle_minus(const Object &left_val,
@@ -70,7 +70,7 @@ static inline Object handle_minus(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
-  return {.type = FLOAT, .val = new float(value1 - value2)};
+  return {FLOAT, new float(value1 - value2)};
 }
 
 static inline Object handle_star(const Object &left_val,
@@ -82,7 +82,7 @@ static inline Object handle_star(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
-  return {.type = FLOAT, .val = new float(value1 * value2)};
+  return {FLOAT, new float(value1 * value2)};
 }
 
 static inline Object handle_slash(const Object &left_val,
@@ -94,7 +94,7 @@ static inline Object handle_slash(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
-  return {.type = FLOAT, .val = new float(value1 / value2)};
+  return {FLOAT, new float(value1 / value2)};
 }
 
 static inline Object handle_bang_equal(const Object &left_val,
@@ -106,20 +106,20 @@ static inline Object handle_bang_equal(const Object &left_val,
   case FLOAT: {
     float &value1 = *((float *)left_val.val);
     float &value2 = *((float *)right_val.val);
-    return {.type = FLOAT, .val = new bool(value1 != value2)};
+    return {FLOAT, new bool(value1 != value2)};
   }
   case STR: {
     char *value1 = ((char *)left_val.val);
     char *value2 = ((char *)right_val.val);
-    return {.type = BOOL, .val = new bool(strcmp(value1, value2) != 0)};
+    return {BOOL, new bool(strcmp(value1, value2) != 0)};
   }
   case BOOL: {
     bool &value1 = *((bool *)left_val.val);
     bool &value2 = *((bool *)right_val.val);
-    return {.type = BOOL, .val = new bool(value1 != value2)};
+    return {BOOL, new bool(value1 != value2)};
   }
   default: {
-    return {.type = BOOL, .val = new bool(false)};
+    return {BOOL, new bool(false)};
   }
   }
 }
@@ -133,24 +133,91 @@ static inline Object handle_equal_equal(const Object &left_val,
   case FLOAT: {
     float &value1 = *((float *)left_val.val);
     float &value2 = *((float *)right_val.val);
-    return {.type = FLOAT, .val = new bool(value1 == value2)};
+    return {FLOAT, new bool(value1 == value2)};
   }
   case STR: {
     char *value1 = ((char *)left_val.val);
     char *value2 = ((char *)right_val.val);
-    return {.type = BOOL, .val = new bool(strcmp(value1, value2) == 0)};
+    return {BOOL, new bool(strcmp(value1, value2) == 0)};
   }
   case BOOL: {
     bool &value1 = *((bool *)left_val.val);
     bool &value2 = *((bool *)right_val.val);
-    return {.type = BOOL, .val = new bool(value1 == value2)};
+    return {BOOL, new bool(value1 == value2)};
   }
   default: {
-    return {.type = BOOL, .val = new bool(false)};
+    return {BOOL, new bool(false)};
   }
   }
 }
 
+static inline float get_value(const Object &val) {
+  // this works only on floats and bools
+  switch (val.type) {
+  case BOOL:
+    return float(*((bool *)val.val));
+  case FLOAT:
+    return *((float *)val.val);
+  case STR:
+    // TODO: Need to handle this better
+    return NAN;
+  default:
+    return NAN;
+  }
+}
+
+static inline Object handle_greater(const Object &left_val,
+                                    const Object &right_val) {
+  bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
+  bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
+  if (is_right_num && is_left_num) {
+    return {BOOL, new bool(get_value(left_val) > get_value(right_val))};
+  } else {
+	  // comparing undefineds and strings are not allowed
+	  return Object();
+  }
+}
+
+static inline Object handle_greater_equal(const Object &left_val,
+                                    const Object &right_val) {
+  bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
+  bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
+  if (is_right_num && is_left_num) {
+    return {BOOL, new bool(get_value(left_val) >= get_value(right_val))};
+  } else {
+	  // comparing undefineds and strings are not allowed
+	  return Object();
+  }
+}
+
+static inline Object handle_less(const Object &left_val,
+                                    const Object &right_val) {
+  bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
+  bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
+  if (is_right_num && is_left_num) {
+    return {BOOL, new bool(get_value(left_val) < get_value(right_val))};
+  } else {
+	  // comparing undefineds and strings are not allowed
+	  return Object();
+  }
+}
+
+static inline Object handle_less_equal(const Object &left_val,
+                                    const Object &right_val) {
+  bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
+  bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
+  if (is_right_num && is_left_num) {
+    return {BOOL, new bool(get_value(left_val) < get_value(right_val))};
+  } else {
+	  // comparing undefineds and strings are not allowed
+	  return Object();
+  }
+}
+
+static inline Object handle_equal(Object &left_val, const Object& right_val) {
+	left_val = right_val;
+	return left_val;
+}
 
 Object Evaluator::visit_unary(Unary *u) {
   Object value = visit(u->right);
@@ -161,7 +228,7 @@ Object Evaluator::visit_unary(Unary *u) {
   if (u->op->token_type_ == BANG) {
     // do something
     bool new_value = !is_truthy(value);
-    return {.type = BOOL, .val = new bool(new_value)};
+    return {BOOL, new bool(new_value)};
   } else if (u->op->token_type_ == MINUS) {
     if (!process_minus(value)) {
       // raise an error
@@ -194,7 +261,7 @@ static bool literal_2_object(Literal *l, Object &obj) {
   }
   case STRING: {
     obj.type = STR;
-    obj.val = new char[l->value->literal_string.size()];
+    obj.val = new char[l->value->literal_string.size()+1];
     snprintf((char *)obj.val, l->value->literal_string.size(), "%s",
              l->value->literal_string.c_str());
     return true;
