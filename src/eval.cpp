@@ -1,5 +1,6 @@
 #include "eval.h"
 #include "token.h"
+#include "spdlog/spdlog.h"
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
 
@@ -70,6 +71,7 @@ static inline Object handle_minus(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
+  spdlog::info("The value is {0}", value1-value2);
   return {FLOAT, new float(value1 - value2)};
 }
 
@@ -99,7 +101,7 @@ static inline Object handle_slash(const Object &left_val,
 
 static inline Object handle_bang_equal(const Object &left_val,
                                        const Object &right_val) {
-  if (is_same_type(left_val, right_val)) {
+  if (!is_same_type(left_val, right_val)) {
     return Object();
   }
   switch (left_val.type) {
@@ -126,14 +128,14 @@ static inline Object handle_bang_equal(const Object &left_val,
 
 static inline Object handle_equal_equal(const Object &left_val,
                                         const Object &right_val) {
-  if (is_same_type(left_val, right_val)) {
+  if (!is_same_type(left_val, right_val)) {
     return Object();
   }
   switch (left_val.type) {
   case FLOAT: {
     float &value1 = *((float *)left_val.val);
     float &value2 = *((float *)right_val.val);
-    return {FLOAT, new bool(value1 == value2)};
+    return {BOOL, new bool(value1 == value2)};
   }
   case STR: {
     char *value1 = ((char *)left_val.val);
@@ -360,9 +362,7 @@ Object Evaluator::visit(Expr *e) {
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
   if (b != nullptr) {
-    // TODO perform some computation
-    error("Binary expression evaluation not implemented yet", b->op->line_no);
-    return Object();
+	return visit_binary(b);
   }
   Unary *u = nullptr;
   u = dynamic_cast<Unary *>(e);
