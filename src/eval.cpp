@@ -248,7 +248,7 @@ Object Evaluator::visit_unary(Unary *u) {
              "Could not process the unary operation for %s with value of the "
              "type %s",
              token_type_to_str(u->op->token_type_).c_str(),
-             Object::type_to_str(value.type));
+             Object::type_to_str(value.type).c_str());
     error(error_str, u->op->line_no);
   }
   return Object();

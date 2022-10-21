@@ -6,8 +6,8 @@ enum ObjectType { STR, FLOAT, BOOL, UNDEFINED };
 struct Object {
   ObjectType type = UNDEFINED;
   void *val = NULL;
-  Object() {};
-  Object(ObjectType type, void* val): type(type), val(val) {};
+  Object(){};
+  Object(ObjectType type, void *val) : type(type), val(val){};
   void copy_data(const Object &o) {
     switch (o.type) {
     case STR:
@@ -60,22 +60,40 @@ struct Object {
     val = NULL;
   }
 
-  static char *type_to_str(ObjectType type) {
+  // making this return std string since we dont want to worry about
+  // deallocating this. it is mostly used for logging
+  static std::string type_to_str(ObjectType type) {
     char *str = new char[6];
     switch (type) {
     case STR:
-      snprintf(str, 6, "STR");
-      break;
+      return "STR";
     case FLOAT:
-      snprintf(str, 6, "FLOAT");
-      break;
+      return "FLOAT";
     case BOOL:
-      snprintf(str, 6, "BOOL");
+      return "BOOL";
     default:
-      snprintf(str, 6, "UNDEFINED");
+      return "UNDEFINED";
       break;
     }
     return str;
+  }
+
+  // making this return std string since we dont want to worry about
+  // deallocating this. it is mostly used for logging
+  static std::string object_to_str(Object val) {
+    switch (val.type) {
+    case STR:
+      return std::string((char *)val.val);
+    case FLOAT:
+      return std::to_string(*(float *)val.val);
+    case BOOL:
+      if (*(bool *)val.val)
+        return "true";
+      else
+        return "false";
+    default:
+      return "UNDEFINED";
+    }
   }
 };
 

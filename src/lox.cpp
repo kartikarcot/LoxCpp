@@ -5,6 +5,7 @@
 #include "utils.h"
 #include <iostream>
 #include <sstream>
+#include "eval.h"
 
 void Lox::run(const std::string &lox_code) {
   scanner_.init(lox_code);
@@ -15,6 +16,8 @@ void Lox::run(const std::string &lox_code) {
   Expr *e = parser_.parse();
   PrettyPrinter p;
   spdlog::info("{0}", p.paranthesize(e));
+  Evaluator eval;
+  spdlog::info("{0}", Object::object_to_str(eval.eval(e)).c_str());
 }
 
 void Lox::run_prompt() {
