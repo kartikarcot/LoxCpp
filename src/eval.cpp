@@ -377,8 +377,7 @@ Object Evaluator::visit(Expr *e) {
   Grouping *g = nullptr;
   g = dynamic_cast<Grouping *>(e);
   if (g != nullptr) {
-    error("Grouping expression evaluation not implemented yet", b->op->line_no);
-    return Object();
+	return visit(g->expression);
   }
 
   // Nothing matched we are returning

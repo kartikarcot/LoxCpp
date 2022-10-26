@@ -102,6 +102,7 @@ private:
   Object visit_unary(Unary *u);
   Object visit_binary(Binary *b);
   Object visit_literal(Literal *l);
+  Object visit_grouping(Grouping* g);
 
 public:
   Object eval(Expr *e);
