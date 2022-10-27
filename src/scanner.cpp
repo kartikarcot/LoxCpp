@@ -96,7 +96,7 @@ bool Scanner::parse_token(size_t &idx) {
       token.literal_string = std::string(source_, idx, longest_match.second);
       set_value(token);
       idx += longest_match.second;
-      spdlog::info("{0} : {1}", token_type_to_str(token.token_type_),
+      spdlog::debug("{0} : {1}", token_type_to_str(token.token_type_),
                    token.literal_string);
     } else {
       // commend line go to end

@@ -49,3 +49,30 @@ class Unary : public Expr {
     }
 };
 
+class Stmt{
+  public:
+    template <typename T, typename V>
+    T accept(V v) {
+      return v->visit(this);
+    }
+    virtual std::string print_type() {
+      return "Expr";
+    }
+};
+
+class Expression : public Stmt {
+  public:
+    Expr* expression;
+    virtual std::string print_type() {
+      return "Expression";
+    }
+};
+
+class Print : public Stmt {
+  public:
+    Expr* expression;
+    virtual std::string print_type() {
+      return "Print";
+    }
+};
+

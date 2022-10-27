@@ -104,28 +104,32 @@ bool generate_code(std::ofstream &ofs, const std::string file_contents) {
     spdlog::error("Could not write contents to output file");
     return false;
   }
-  if (!getline(input_stringstream, rule)) {
-    spdlog::error("Could not read the given grammar file");
-    return false;
-  }
-  if (rule.find("Basename") == std::string::npos) {
-    spdlog::error("Could not find the Basename");
-    return false;
-  }
-  auto basename_split = split(rule, " ");
-  assert(basename_split.size() == 2);
-  std::string basename = basename_split[1];
-  trim(basename);
-  generate_base_ast(code, basename);
-  if (!write_code(ofs, code)) {
-    spdlog::error("Could not write contents to output file");
-    return false;
-  }
-  while (getline(input_stringstream, rule)) {
-    generate_ast(rule, basename, code);
+  while (true) {
+    if (!getline(input_stringstream, rule)) {
+      break;
+    }
+    if (rule.find("Basename") == std::string::npos) {
+      spdlog::error("Could not find the Basename");
+      return false;
+    }
+    auto basename_split = split(rule, " ");
+    assert(basename_split.size() == 2);
+    std::string basename = basename_split[1];
+    trim(basename);
+    generate_base_ast(code, basename);
     if (!write_code(ofs, code)) {
       spdlog::error("Could not write contents to output file");
       return false;
+    }
+    while (getline(input_stringstream, rule)) {
+      if (rule == "---") {
+        break;
+      }
+      generate_ast(rule, basename, code);
+      if (!write_code(ofs, code)) {
+        spdlog::error("Could not write contents to output file");
+        return false;
+      }
     }
   }
   return true;
