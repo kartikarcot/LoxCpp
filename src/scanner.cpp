@@ -129,6 +129,7 @@ bool Scanner::scan() {
     if (idx >= source_.size())
       break;
   }
+  tokens_.push_back(Token(END_OF_FILE,"",nullptr,0));
   return true;
 }
 

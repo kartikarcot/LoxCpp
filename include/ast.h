@@ -12,6 +12,7 @@ class Expr{
     virtual std::string print_type() {
       return "Expr";
     }
+    virtual ~Expr() {}
 };
 
 class Binary : public Expr {
@@ -22,24 +23,35 @@ class Binary : public Expr {
     virtual std::string print_type() {
       return "Binary";
     }
+    
+    ~Binary() {
+      delete left;
+      delete op;
+      delete right;
+    }
 };
-
 class Grouping : public Expr {
   public:
     Expr* expression;
     virtual std::string print_type() {
       return "Grouping";
     }
+    
+    ~Grouping() {
+      delete expression;
+    }
 };
-
 class Literal : public Expr {
   public:
     Token* value;
     virtual std::string print_type() {
       return "Literal";
     }
+    
+    ~Literal() {
+      delete value;
+    }
 };
-
 class Unary : public Expr {
   public:
     Token* op;
@@ -47,8 +59,12 @@ class Unary : public Expr {
     virtual std::string print_type() {
       return "Unary";
     }
+    
+    ~Unary() {
+      delete op;
+      delete right;
+    }
 };
-
 class Stmt{
   public:
     template <typename T, typename V>
@@ -58,6 +74,7 @@ class Stmt{
     virtual std::string print_type() {
       return "Expr";
     }
+    virtual ~Stmt() {}
 };
 
 class Expression : public Stmt {
@@ -66,13 +83,19 @@ class Expression : public Stmt {
     virtual std::string print_type() {
       return "Expression";
     }
+    
+    ~Expression() {
+      delete expression;
+    }
 };
-
 class Print : public Stmt {
   public:
     Expr* expression;
     virtual std::string print_type() {
       return "Print";
     }
+    
+    ~Print() {
+      delete expression;
+    }
 };
-

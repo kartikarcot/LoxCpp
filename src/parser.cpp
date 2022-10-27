@@ -160,7 +160,7 @@ Expr *Parser::primary() {
       spdlog::error("Could not parse");
       return NULL;
     }
-	return expr;
+    return expr;
   } else {
     Token t;
     if (!peek(t)) {
@@ -169,7 +169,7 @@ Expr *Parser::primary() {
     }
     Expr *expr = new Literal();
     static_cast<Literal *>(expr)->value = new Token(t);
-	advance(t);
+    advance(t);
     return expr;
   }
   return NULL;
@@ -219,3 +219,33 @@ bool Parser::previous(Token &t) {
 }
 
 Expr *Parser::parse() { return expression(); }
+
+std::vector<Stmt*> Parser::parse_stmts() {
+  std::vector<Stmt*> statements;
+  while (!is_at_end()) {
+    Token t;
+    peek(t);
+    switch (t.token_type_) {
+    case PRINT: {
+      match({PRINT});
+      Expr *expr = expression();
+      if (!match({SEMICOLON})) {
+        report("Missing semicolon at the end of the statement", "", 0);
+      }
+      Print* p = new Print();
+      p->expression = expr;
+      statements.push_back(p);
+      break;
+    }
+    default: {
+      // evaluate as an expression
+      Expr *expr = expression();
+      Expression* ex = new Expression();
+      ex->expression = expr;
+      statements.push_back(ex);
+      break;
+    }
+    }
+  }
+  return statements;
+}
