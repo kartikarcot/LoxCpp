@@ -13,11 +13,13 @@ void Lox::run(const std::string &lox_code) {
   spdlog::debug("Input string {0}", lox_code);
   auto tokens = scanner_.get_tokens();
   parser_.init(tokens);
-  Expr *e = parser_.parse();
-  PrettyPrinter p;
-  spdlog::info("{0}", p.paranthesize(e));
+  auto stmts = parser_.parse_stmts();
+  // Expr *e = parser_.parse();
+  // PrettyPrinter p;
+  // spdlog::info("{0}", p.paranthesize(e));
   Evaluator eval;
-  spdlog::info("{0}", Object::object_to_str(eval.eval(e)).c_str());
+  // spdlog::info("{0}", Object::object_to_str(eval.eval(e)).c_str());
+  eval.eval(stmts);
 }
 
 void Lox::run_prompt() {
