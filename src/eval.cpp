@@ -1,8 +1,19 @@
 #include "eval.h"
-#include "token.h"
 #include "spdlog/spdlog.h"
+#include "token.h"
+#include "utils.h"
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
+
+void Evaluator::eval(std::vector<Stmt *> stmts) {
+  for (const auto &stmt : stmts) {
+    if (stmt == nullptr) {
+      spdlog::error("Evaluator encountered a nullptr for a statement");
+      exit(-1);
+    }
+    stmt->accept<void, Evaluator *>(this);
+  }
+}
 
 static bool process_minus(Object &value) {
   // do something
@@ -71,7 +82,7 @@ static inline Object handle_minus(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
-  spdlog::info("The value is {0}", value1-value2);
+  spdlog::info("The value is {0}", value1 - value2);
   return {FLOAT, new float(value1 - value2)};
 }
 
@@ -175,50 +186,50 @@ static inline Object handle_greater(const Object &left_val,
   if (is_right_num && is_left_num) {
     return {BOOL, new bool(get_value(left_val) > get_value(right_val))};
   } else {
-	  // comparing undefineds and strings are not allowed
-	  return Object();
+    // comparing undefineds and strings are not allowed
+    return Object();
   }
 }
 
 static inline Object handle_greater_equal(const Object &left_val,
-                                    const Object &right_val) {
+                                          const Object &right_val) {
   bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
   bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
   if (is_right_num && is_left_num) {
     return {BOOL, new bool(get_value(left_val) >= get_value(right_val))};
   } else {
-	  // comparing undefineds and strings are not allowed
-	  return Object();
+    // comparing undefineds and strings are not allowed
+    return Object();
   }
 }
 
 static inline Object handle_less(const Object &left_val,
-                                    const Object &right_val) {
+                                 const Object &right_val) {
   bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
   bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
   if (is_right_num && is_left_num) {
     return {BOOL, new bool(get_value(left_val) < get_value(right_val))};
   } else {
-	  // comparing undefineds and strings are not allowed
-	  return Object();
+    // comparing undefineds and strings are not allowed
+    return Object();
   }
 }
 
 static inline Object handle_less_equal(const Object &left_val,
-                                    const Object &right_val) {
+                                       const Object &right_val) {
   bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
   bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
   if (is_right_num && is_left_num) {
     return {BOOL, new bool(get_value(left_val) < get_value(right_val))};
   } else {
-	  // comparing undefineds and strings are not allowed
-	  return Object();
+    // comparing undefineds and strings are not allowed
+    return Object();
   }
 }
 
-static inline Object handle_equal(Object &left_val, const Object& right_val) {
-	left_val = right_val;
-	return left_val;
+static inline Object handle_equal(Object &left_val, const Object &right_val) {
+  left_val = right_val;
+  return left_val;
 }
 
 Object Evaluator::visit_unary(Unary *u) {
@@ -263,7 +274,7 @@ static bool literal_2_object(Literal *l, Object &obj) {
   }
   case STRING: {
     obj.type = STR;
-    obj.val = new char[l->value->literal_string.size()+1];
+    obj.val = new char[l->value->literal_string.size() + 1];
     snprintf((char *)obj.val, l->value->literal_string.size(), "%s",
              l->value->literal_string.c_str());
     return true;
@@ -362,7 +373,7 @@ Object Evaluator::visit(Expr *e) {
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
   if (b != nullptr) {
-	return visit_binary(b);
+    return visit_binary(b);
   }
   Unary *u = nullptr;
   u = dynamic_cast<Unary *>(e);
@@ -377,9 +388,29 @@ Object Evaluator::visit(Expr *e) {
   Grouping *g = nullptr;
   g = dynamic_cast<Grouping *>(e);
   if (g != nullptr) {
-	return visit(g->expression);
+    return visit(g->expression);
   }
 
   // Nothing matched we are returning
   return Object();
+}
+
+void Evaluator::visit(Stmt *s) {
+  Print *p = nullptr;
+  p = dynamic_cast<Print *>(s);
+  if (p != nullptr) {
+    // do something
+    auto value = visit(p->expression);
+    spdlog::info("{} {}", Object::type_to_str(value.type).c_str(),
+                 Object::object_to_str(value).c_str());
+    return;
+  }
+  Expression *e = nullptr;
+  e = dynamic_cast<Expression *>(s);
+  if (e != nullptr) {
+    // do something
+    visit(e->expression);
+    return;
+  }
+  report("Could not evaluate the statement", "", 0);
 }

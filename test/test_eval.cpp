@@ -308,6 +308,56 @@ TEST(EvalTest, binary_expr_test_18) {
   EXPECT_EQ(obj.type, UNDEFINED);
 }
 
+TEST(EvalTest, stmt_eval_test_19) {
+  Expression *e1 = new Expression();
+  {
+    Literal *l1 = new Literal();
+    l1->value = new Token(STRING, "My Fair Lady", strdup("My Fair Lady"), 0);
+    Literal *l2 = new Literal();
+    l2->value =
+        new Token(STRING, "My Fair Ladies", strdup("My Fair Ladies"), 0);
+
+    Binary *expr = new Binary();
+    expr->op = new Token(GREATER_EQUAL, ">=", nullptr, 0);
+    expr->right = l1;
+    expr->left = l2;
+    e1->expression = expr;
+  }
+
+  Expression *e2 = new Expression();
+  {
+    // Construct an expression tree
+    Literal *l1 = new Literal();
+    l1->value = new Token(NUMBER, "13", new float(13), 0);
+    Literal *l2 = new Literal();
+    l2->value = new Token(NUMBER, "14", new float(14), 0);
+
+    Binary *expr = new Binary();
+    expr->op = new Token(GREATER_EQUAL, ">=", nullptr, 0);
+    expr->right = l1;
+    expr->left = l2;
+    e2->expression = expr;
+  }
+
+  Print *p = new Print();
+  {
+    // Construct an expression tree
+    Literal *l1 = new Literal();
+    l1->value = new Token(NUMBER, "13", new float(13), 0);
+    Literal *l2 = new Literal();
+    l2->value = new Token(NUMBER, "14", new float(14), 0);
+
+    Binary *expr = new Binary();
+    expr->op = new Token(GREATER_EQUAL, ">=", nullptr, 0);
+    expr->right = l1;
+    expr->left = l2;
+    p->expression = expr;
+  }
+  std::vector<Stmt *> stmts = {e1, e2, p};
+  Evaluator eval;
+  eval.eval(stmts);
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
