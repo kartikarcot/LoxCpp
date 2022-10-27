@@ -160,7 +160,7 @@ Expr *Parser::primary() {
       spdlog::error("Could not parse");
       return NULL;
     }
-	return expr;
+    return expr;
   } else {
     Token t;
     if (!peek(t)) {
@@ -169,7 +169,7 @@ Expr *Parser::primary() {
     }
     Expr *expr = new Literal();
     static_cast<Literal *>(expr)->value = new Token(t);
-	advance(t);
+    advance(t);
     return expr;
   }
   return NULL;

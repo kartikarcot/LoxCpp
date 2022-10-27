@@ -1,8 +1,8 @@
 #include "utils.h"
 #include "spdlog/spdlog.h"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <filesystem>
 
 namespace fs = std::filesystem;
 std::string read_file_into_string(const std::string &file_path) {

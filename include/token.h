@@ -79,8 +79,8 @@ struct Token {
 
   void copy_data(const Token &t) {
     this->literal_string = t.literal_string;
-	this->token_type_ = t.token_type_;
-	this->line_no = t.line_no;
+    this->token_type_ = t.token_type_;
+    this->line_no = t.line_no;
     switch (t.token_type_) {
     case NUMBER:
       this->literal = new float(*(float *)t.literal);
