@@ -28,7 +28,7 @@ void generate_base_ast(std::string &ast_code, const std::string &class_name) {
   buffer.decrease_indent();
   buffer.decrease_indent();
   buffer.write_line("};");
-  buffer.write_line("");
+  buffer.write_line("%s", "");
   buffer.get_contents(ast_code);
 }
 
@@ -75,7 +75,7 @@ void generate_ast(const std::string &rule, const std::string &base_name,
   buffer.decrease_indent();
   buffer.decrease_indent();
   buffer.write_line("};");
-  buffer.write_line("");
+  buffer.write_line("%s", "");
   buffer.get_contents(ast_code);
 }
 
@@ -84,8 +84,8 @@ void generate_preamble(std::string &code) {
   buffer.write_line("#pragma once");
   buffer.write_line("#include \"utils.h\"");
   buffer.write_line("#include \"token.h\"");
-  buffer.write_line("");
-  buffer.write_line("");
+  buffer.write_line("%s", "");
+  buffer.write_line("%s", "");
   buffer.get_contents(code);
   return;
 }

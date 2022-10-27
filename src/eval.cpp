@@ -243,8 +243,8 @@ Object Evaluator::visit_unary(Unary *u) {
     return value;
   } else {
     // raise an error we should not have reached here
-    char *error_str = new char[65];
-    snprintf(error_str, 60,
+    char *error_str = new char[80];
+    snprintf(error_str, 80,
              "Could not process the unary operation for %s with value of the "
              "type %s",
              token_type_to_str(u->op->token_type_).c_str(),
