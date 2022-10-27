@@ -14,9 +14,12 @@ TEST(ParserTest, test_parser_2) {
   // clang-format off
   std::vector<Token> tokens = {
       Token(STRING, "My Fair Lady", strdup("My Fair Lady"), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
       Token(STRING, "My Fair Lady", strdup("My Fair Lady"), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
 	  Token(TRUE, "true", new bool(true), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
   // clang-format on
@@ -32,6 +35,7 @@ TEST(ParserTest, test_parser_3) {
       Token(PRINT, "", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
 	  Token(TRUE, "true", new bool(true), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
   // clang-format on
@@ -48,9 +52,11 @@ TEST(ParserTest, test_parser_4) {
       Token(PRINT, "", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
 	  Token(TRUE, "true", new bool(true), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
 	  Token(PRINT, "", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
 	  Token(TRUE, "true", new bool(true), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
   // clang-format on

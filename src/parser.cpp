@@ -220,8 +220,8 @@ bool Parser::previous(Token &t) {
 
 Expr *Parser::parse() { return expression(); }
 
-std::vector<Stmt*> Parser::parse_stmts() {
-  std::vector<Stmt*> statements;
+std::vector<Stmt *> Parser::parse_stmts() {
+  std::vector<Stmt *> statements;
   while (!is_at_end()) {
     Token t;
     peek(t);
@@ -231,8 +231,9 @@ std::vector<Stmt*> Parser::parse_stmts() {
       Expr *expr = expression();
       if (!match({SEMICOLON})) {
         report("Missing semicolon at the end of the statement", "", 0);
+		return {};
       }
-      Print* p = new Print();
+      Print *p = new Print();
       p->expression = expr;
       statements.push_back(p);
       break;
@@ -240,7 +241,11 @@ std::vector<Stmt*> Parser::parse_stmts() {
     default: {
       // evaluate as an expression
       Expr *expr = expression();
-      Expression* ex = new Expression();
+      Expression *ex = new Expression();
+      if (!match({SEMICOLON})) {
+        report("Missing semicolon at the end of the statement", "", 0);
+		return {};
+      }
       ex->expression = expr;
       statements.push_back(ex);
       break;
