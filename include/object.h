@@ -1,4 +1,5 @@
 #pragma once
+#include <cstring>
 #include <string>
 
 enum ObjectType { STR, FLOAT, BOOL, UNDEFINED };
