@@ -12,7 +12,7 @@ class Expr{
     virtual std::string print_type() {
       return "Expr";
     }
-    virtual ~Expr() {} 
+    virtual ~Expr() {}
 };
 
 class Binary : public Expr {
@@ -23,7 +23,7 @@ class Binary : public Expr {
     virtual std::string print_type() {
       return "Binary";
     }
-    
+
     ~Binary() {
       delete left;
       delete op;
@@ -37,7 +37,7 @@ class Grouping : public Expr {
     virtual std::string print_type() {
       return "Grouping";
     }
-    
+
     ~Grouping() {
       delete expression;
     }
@@ -49,7 +49,7 @@ class Literal : public Expr {
     virtual std::string print_type() {
       return "Literal";
     }
-    
+
     ~Literal() {
       delete value;
     }
@@ -62,7 +62,7 @@ class Unary : public Expr {
     virtual std::string print_type() {
       return "Unary";
     }
-    
+
     ~Unary() {
       delete op;
       delete right;
@@ -75,7 +75,7 @@ class Variable : public Expr {
     virtual std::string print_type() {
       return "Variable";
     }
-    
+
     ~Variable() {
       delete name;
     }
@@ -90,7 +90,7 @@ class Stmt{
     virtual std::string print_type() {
       return "Expr";
     }
-    virtual ~Stmt() {} 
+    virtual ~Stmt() {}
 };
 
 class Expression : public Stmt {
@@ -99,7 +99,7 @@ class Expression : public Stmt {
     virtual std::string print_type() {
       return "Expression";
     }
-    
+
     ~Expression() {
       delete expression;
     }
@@ -111,7 +111,7 @@ class Print : public Stmt {
     virtual std::string print_type() {
       return "Print";
     }
-    
+
     ~Print() {
       delete expression;
     }
@@ -124,10 +124,9 @@ class Var : public Stmt {
     virtual std::string print_type() {
       return "Var";
     }
-    
+
     ~Var() {
       delete name;
       delete initializer;
     }
 };
-

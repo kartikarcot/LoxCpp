@@ -25,9 +25,9 @@ Expr *Parser::expression() {
   Token t;
   // if there is a token that is not a semicolon then there was a parser error!
   if(peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
-	  spdlog::error("Could not parse the expression");
-	  return NULL;
-  } 
+      spdlog::error("Could not parse the expression");
+      return NULL;
+  }
   return e;
 }
 

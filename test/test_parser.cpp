@@ -18,7 +18,7 @@ TEST(ParserTest, test_parser_2) {
       Token(STRING, "My Fair Lady", strdup("My Fair Lady"), 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
-	  Token(TRUE, "true", new bool(true), 0),
+      Token(TRUE, "true", new bool(true), 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
@@ -34,7 +34,7 @@ TEST(ParserTest, test_parser_3) {
   std::vector<Token> tokens = {
       Token(PRINT, "", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
-	  Token(TRUE, "true", new bool(true), 0),
+      Token(TRUE, "true", new bool(true), 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
@@ -51,11 +51,11 @@ TEST(ParserTest, test_parser_4) {
   std::vector<Token> tokens = {
       Token(PRINT, "", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
-	  Token(TRUE, "true", new bool(true), 0),
+      Token(TRUE, "true", new bool(true), 0),
       Token(SEMICOLON, ";", nullptr, 0),
-	  Token(PRINT, "", nullptr, 0),
+      Token(PRINT, "", nullptr, 0),
       Token(BANG, "!", nullptr, 0),
-	  Token(TRUE, "true", new bool(true), 0),
+      Token(TRUE, "true", new bool(true), 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
@@ -72,8 +72,8 @@ TEST(ParserTest, test_parser_5) {
   std::vector<Token> tokens = {
       Token(VAR, "", nullptr, 0),
       Token(IDENTIFIER, "foo", nullptr, 0),
-	  Token(EQUAL, "=", nullptr, 0),
-	  Token(TRUE, "true", new bool(true), 0),
+      Token(EQUAL, "=", nullptr, 0),
+      Token(TRUE, "true", new bool(true), 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
