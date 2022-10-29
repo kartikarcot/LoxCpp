@@ -4,7 +4,6 @@
 
 #include "lox.h"
 
-
 int main(int argc, char **argv) {
   spdlog::set_pattern("%^[%l]%$ %v");
   Lox interpreter;

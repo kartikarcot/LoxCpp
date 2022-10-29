@@ -1,4 +1,5 @@
 #include "stringbuffer.h"
+#include "stdarg.h"
 
 void StringBuffer::init() { ss.clear(); }
 

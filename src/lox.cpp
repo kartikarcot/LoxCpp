@@ -1,11 +1,11 @@
 #include "lox.h"
+#include "eval.h"
 #include "printer.h"
 #include "spdlog/sinks/ansicolor_sink.h"
 #include "spdlog/spdlog.h"
 #include "utils.h"
 #include <iostream>
 #include <sstream>
-#include "eval.h"
 
 void Lox::run(const std::string &lox_code) {
   scanner_.init(lox_code);
@@ -25,7 +25,7 @@ void Lox::run(const std::string &lox_code) {
 void Lox::run_prompt() {
   std::string line;
   while (true) {
-	std::cout<<"> ";
+    std::cout << "> ";
     std::getline(std::cin, line);
     // Ctrl+D signals EOF and break then
     if (std::cin.eof())
