@@ -1,10 +1,12 @@
 #include "spdlog/spdlog.h"
+#include "spdlog/cfg/env.h"
 #include "stdio.h"
 #include <filesystem>
 
 #include "lox.h"
 
 int main(int argc, char **argv) {
+  spdlog::cfg::load_env_levels();
   spdlog::set_pattern("%^[%l]%$ %v");
   Lox interpreter;
   if (argc == 1) {

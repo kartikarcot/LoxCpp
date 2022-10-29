@@ -20,6 +20,7 @@ class Parser {
   bool previous(Token &t);
   bool is_at_end();
   int current_ = -1;
+  void synchronize();
 
 public:
   void init(const std::vector<Token> &tokens);

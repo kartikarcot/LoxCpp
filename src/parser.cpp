@@ -21,7 +21,14 @@ void Parser::init(const std::vector<Token> &tokens) {
 
 Expr *Parser::expression() {
   spdlog::debug("Parsing expression");
-  return equality();
+  Expr* e = equality();
+  Token t;
+  // if there is a token that is not a semicolon then there was a parser error!
+  if(peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
+	  spdlog::error("Could not parse the expression");
+	  return NULL;
+  } 
+  return e;
 }
 
 Expr *Parser::equality() {
@@ -155,13 +162,22 @@ Expr *Parser::unary() {
 Expr *Parser::primary() {
   spdlog::debug("Parsing primary");
   if (match({LEFT_PAREN})) {
+    // if a grouped then start from the top
     Expr *expr = expression();
     if (!match({RIGHT_PAREN})) {
       spdlog::error("Could not parse");
       return NULL;
     }
     return expr;
+  } else if (match({IDENTIFIER})) {
+    // if identifier then create a variable node
+    Variable *var = new Variable();
+    var->name = new Token();
+    previous(*var->name);
+    spdlog::debug("Parsing identifier {}", var->name->literal_string.c_str());
+    return var;
   } else {
+    // otherwise it has to be a literal or some parse error
     Token t;
     if (!peek(t)) {
       spdlog::error("Could not parse");
@@ -169,6 +185,7 @@ Expr *Parser::primary() {
     }
     Expr *expr = new Literal();
     static_cast<Literal *>(expr)->value = new Token(t);
+    spdlog::debug("Parsing literal {}", t.literal_string.c_str());
     advance(t);
     return expr;
   }
@@ -216,6 +233,31 @@ bool Parser::previous(Token &t) {
     return false;
   t = tokens_[current_ - 1];
   return true;
+}
+
+// This function advances our token iterator to the next statement
+// We will use this when we fail to parse a statement.
+void Parser::synchronize() {
+  Token t;
+  advance(t);
+  while (!is_at_end()) {
+    if (previous(t) && t.token_type_ == SEMICOLON)
+      return;
+    peek(t);
+    switch (t.token_type_) {
+    case CLASS:
+    case FUN:
+    case FOR:
+    case IF:
+    case WHILE:
+    case PRINT:
+    case RETURN:
+      return;
+    default:
+      advance(t);
+      break;
+    }
+  }
 }
 
 Expr *Parser::parse() { return expression(); }
@@ -281,10 +323,21 @@ Stmt *Parser::parse_var_declaration() {
 }
 
 Stmt *Parser::parse_declaration() {
+  Stmt *s = nullptr;
+  // if we match a var start point then we are a variable declaration
   if (match({VAR})) {
-    return parse_var_declaration();
+    s = parse_var_declaration();
+
+  } else {
+    // else parse it as a statement
+    s = parse_statement();
   }
-  return parse_statement();
+  // if parse failed then synchronize
+  if (s == nullptr) {
+    synchronize();
+  }
+  // return a parse-tree expression/NULL
+  return s;
 }
 
 std::vector<Stmt *> Parser::parse_stmts() {
