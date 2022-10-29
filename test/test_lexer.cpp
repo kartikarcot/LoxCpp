@@ -17,7 +17,7 @@ TEST(LexerTest, lexer_test_1) {
   scanner.init("1+2+3+4+5");
   EXPECT_TRUE(scanner.scan());
   auto tokens = scanner.get_tokens();
-  std::vector<TokenType> types = {NUMBER, PLUS,   NUMBER, PLUS,  NUMBER,
+  std::vector<TokenType> types = {NUMBER, PLUS,   NUMBER, PLUS,   NUMBER,
                                   PLUS,   NUMBER, PLUS,   NUMBER, END_OF_FILE};
   for (int i = 0; i < tokens.size(); i++) {
     EXPECT_EQ(tokens[i].token_type_, types[i]);

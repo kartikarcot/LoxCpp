@@ -97,7 +97,7 @@ bool Scanner::parse_token(size_t &idx) {
       set_value(token);
       idx += longest_match.second;
       spdlog::debug("{0} : {1}", token_type_to_str(token.token_type_),
-                   token.literal_string);
+                    token.literal_string);
     } else {
       // commend line go to end
       idx = source_.size();
@@ -129,7 +129,7 @@ bool Scanner::scan() {
     if (idx >= source_.size())
       break;
   }
-  tokens_.push_back(Token(END_OF_FILE,"",nullptr,0));
+  tokens_.push_back(Token(END_OF_FILE, "", nullptr, 0));
   return true;
 }
 

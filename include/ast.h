@@ -1,132 +1,95 @@
 #pragma once
-#include "utils.h"
 #include "token.h"
+#include "utils.h"
 
-
-class Expr{
-  public:
-    template <typename T, typename V>
-    T accept(V v) {
-      return v->visit(this);
-    }
-    virtual std::string print_type() {
-      return "Expr";
-    }
-    virtual ~Expr() {}
+class Expr {
+public:
+  template <typename T, typename V> T accept(V v) { return v->visit(this); }
+  virtual std::string print_type() { return "Expr"; }
+  virtual ~Expr() {}
 };
 
 class Binary : public Expr {
-  public:
-    Expr* left;
-    Token* op;
-    Expr* right;
-    virtual std::string print_type() {
-      return "Binary";
-    }
+public:
+  Expr *left;
+  Token *op;
+  Expr *right;
+  virtual std::string print_type() { return "Binary"; }
 
-    ~Binary() {
-      delete left;
-      delete op;
-      delete right;
-    }
+  ~Binary() {
+    delete left;
+    delete op;
+    delete right;
+  }
 };
 
 class Grouping : public Expr {
-  public:
-    Expr* expression;
-    virtual std::string print_type() {
-      return "Grouping";
-    }
+public:
+  Expr *expression;
+  virtual std::string print_type() { return "Grouping"; }
 
-    ~Grouping() {
-      delete expression;
-    }
+  ~Grouping() { delete expression; }
 };
 
 class Literal : public Expr {
-  public:
-    Token* value;
-    virtual std::string print_type() {
-      return "Literal";
-    }
+public:
+  Token *value;
+  virtual std::string print_type() { return "Literal"; }
 
-    ~Literal() {
-      delete value;
-    }
+  ~Literal() { delete value; }
 };
 
 class Unary : public Expr {
-  public:
-    Token* op;
-    Expr* right;
-    virtual std::string print_type() {
-      return "Unary";
-    }
+public:
+  Token *op;
+  Expr *right;
+  virtual std::string print_type() { return "Unary"; }
 
-    ~Unary() {
-      delete op;
-      delete right;
-    }
+  ~Unary() {
+    delete op;
+    delete right;
+  }
 };
 
 class Variable : public Expr {
-  public:
-    Token* name;
-    virtual std::string print_type() {
-      return "Variable";
-    }
+public:
+  Token *name;
+  virtual std::string print_type() { return "Variable"; }
 
-    ~Variable() {
-      delete name;
-    }
+  ~Variable() { delete name; }
 };
 
-class Stmt{
-  public:
-    template <typename T, typename V>
-    T accept(V v) {
-      return v->visit(this);
-    }
-    virtual std::string print_type() {
-      return "Expr";
-    }
-    virtual ~Stmt() {}
+class Stmt {
+public:
+  template <typename T, typename V> T accept(V v) { return v->visit(this); }
+  virtual std::string print_type() { return "Expr"; }
+  virtual ~Stmt() {}
 };
 
 class Expression : public Stmt {
-  public:
-    Expr* expression;
-    virtual std::string print_type() {
-      return "Expression";
-    }
+public:
+  Expr *expression;
+  virtual std::string print_type() { return "Expression"; }
 
-    ~Expression() {
-      delete expression;
-    }
+  ~Expression() { delete expression; }
 };
 
 class Print : public Stmt {
-  public:
-    Expr* expression;
-    virtual std::string print_type() {
-      return "Print";
-    }
+public:
+  Expr *expression;
+  virtual std::string print_type() { return "Print"; }
 
-    ~Print() {
-      delete expression;
-    }
+  ~Print() { delete expression; }
 };
 
 class Var : public Stmt {
-  public:
-    Token* name;
-    Expr* initializer;
-    virtual std::string print_type() {
-      return "Var";
-    }
+public:
+  Token *name;
+  Expr *initializer;
+  virtual std::string print_type() { return "Var"; }
 
-    ~Var() {
-      delete name;
-      delete initializer;
-    }
+  ~Var() {
+    delete name;
+    delete initializer;
+  }
 };

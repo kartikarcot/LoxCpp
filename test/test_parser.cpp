@@ -43,7 +43,7 @@ TEST(ParserTest, test_parser_3) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<Print*>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_cast<Print *>(stmts[0]) != nullptr);
 }
 
 TEST(ParserTest, test_parser_4) {
@@ -64,7 +64,7 @@ TEST(ParserTest, test_parser_4) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 2);
-  EXPECT_TRUE(dynamic_cast<Print*>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_cast<Print *>(stmts[0]) != nullptr);
 }
 
 TEST(ParserTest, test_parser_5) {
@@ -82,9 +82,10 @@ TEST(ParserTest, test_parser_5) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<Var*>(stmts[0]) != nullptr);
-  EXPECT_TRUE(dynamic_cast<Var*>(stmts[0])->name->literal_string == "foo");
-  EXPECT_TRUE(dynamic_cast<Literal*>(dynamic_cast<Var*>(stmts[0])->initializer) != nullptr);
+  EXPECT_TRUE(dynamic_cast<Var *>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_cast<Var *>(stmts[0])->name->literal_string == "foo");
+  EXPECT_TRUE(dynamic_cast<Literal *>(
+                  dynamic_cast<Var *>(stmts[0])->initializer) != nullptr);
 }
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);

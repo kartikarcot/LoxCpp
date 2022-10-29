@@ -24,7 +24,7 @@ void generate_base_ast(std::string &ast_code, const std::string &class_name) {
   buffer.write_line("return \"Expr\";");
   buffer.decrease_indent();
   buffer.write_line("}");
-  buffer.write_line("virtual ~%s() {} ",  class_name.c_str());
+  buffer.write_line("virtual ~%s() {} ", class_name.c_str());
   buffer.decrease_indent();
   buffer.decrease_indent();
   buffer.decrease_indent();

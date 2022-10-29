@@ -21,12 +21,12 @@ void Parser::init(const std::vector<Token> &tokens) {
 
 Expr *Parser::expression() {
   spdlog::debug("Parsing expression");
-  Expr* e = equality();
+  Expr *e = equality();
   Token t;
   // if there is a token that is not a semicolon then there was a parser error!
-  if(peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
-      spdlog::error("Could not parse the expression");
-      return NULL;
+  if (peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
+    spdlog::error("Could not parse the expression");
+    return NULL;
   }
   return e;
 }
