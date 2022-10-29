@@ -7,12 +7,16 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
+add_executable(test_parser test_parser.cpp)
+target_link_libraries(test_parser PRIVATE parser gtest spdlog)
+target_compile_definitions(test_parser PUBLIC UNIT_TEST)
+add_test(NAME test_parser COMMAND test_lexer)
 
 add_executable(test_lexer test_lexer.cpp)
-target_link_libraries(test_lexer PRIVATE scanner gtest)
+target_link_libraries(test_lexer PRIVATE scanner gtest spdlog)
 target_compile_definitions(test_lexer PUBLIC UNIT_TEST)
 add_test(NAME test_lexer COMMAND test_lexer)
 
 add_executable(test_eval test_eval.cpp)
-target_link_libraries(test_eval PRIVATE eval gtest)
+target_link_libraries(test_eval PRIVATE eval gtest spdlog)
 add_test(NAME test_eval COMMAND test_eval)

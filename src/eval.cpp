@@ -1,10 +1,21 @@
 #include "eval.h"
 #include "spdlog/spdlog.h"
 #include "token.h"
+#include "utils.h"
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
 
-static bool process_minus(Object &value) {
+void Evaluator::eval(std::vector<Stmt *> stmts) {
+  for (const auto &stmt : stmts) {
+    if (stmt == nullptr) {
+      spdlog::error("Evaluator encountered a nullptr for a statement");
+      exit(-1);
+    }
+    stmt->accept<void, Evaluator *>(this);
+  }
+}
+
+static bool process_minus(const Object &value) {
   // do something
   switch (value.type) {
   case STR: {
@@ -216,13 +227,8 @@ static inline Object handle_less_equal(const Object &left_val,
   }
 }
 
-static inline Object handle_equal(Object &left_val, const Object &right_val) {
-  left_val = right_val;
-  return left_val;
-}
-
 Object Evaluator::visit_unary(Unary *u) {
-  Object value = visit(u->right);
+  const Object &value = visit(u->right);
   if (value.type == UNDEFINED) {
     // propagate the undefined upwards
     return value;
@@ -233,7 +239,7 @@ Object Evaluator::visit_unary(Unary *u) {
     return {BOOL, new bool(new_value)};
   } else if (u->op->token_type_ == MINUS) {
     if (!process_minus(value)) {
-      // raise an error
+
       error("Could not process the unary operation for '-' operator",
             u->op->line_no);
       // return a nill
@@ -298,11 +304,11 @@ Object Evaluator::visit_literal(Literal *l) {
 }
 
 Object Evaluator::visit_binary(Binary *b) {
-  Object left_val = visit(b->left);
+  const Object &left_val = visit(b->left);
   if (left_val.type == UNDEFINED) {
     return left_val;
   }
-  Object right_val = visit(b->right);
+  const Object &right_val = visit(b->right);
   if (right_val.type == UNDEFINED) {
     return right_val;
   }
@@ -348,14 +354,18 @@ Object Evaluator::visit_binary(Binary *b) {
     return handle_less_equal(left_val, right_val);
     break;
   }
-  case EQUAL: {
-    return handle_equal(left_val, right_val);
-    break;
-  }
   default: {
     return Object();
   }
   }
+}
+
+Object Evaluator::visit_variable(Variable *v) {
+  Object *obj_ptr = env.get(*v->name);
+  if (obj_ptr != nullptr) {
+    return *obj_ptr;
+  }
+  return Object();
 }
 
 Object Evaluator::visit(Expr *e) {
@@ -379,7 +389,41 @@ Object Evaluator::visit(Expr *e) {
   if (g != nullptr) {
     return visit(g->expression);
   }
+  Variable *v = nullptr;
+  v = dynamic_cast<Variable *>(e);
+  if (v != nullptr) {
+    return visit_variable(v);
+  }
+  spdlog::error("Could not evaluate the expression! No rules matched!");
 
   // Nothing matched we are returning
   return Object();
+}
+
+void Evaluator::visit(Stmt *s) {
+  Print *p = nullptr;
+  p = dynamic_cast<Print *>(s);
+  if (p != nullptr) {
+    // do something
+    auto value = visit(p->expression);
+    spdlog::info("{} {}", Object::type_to_str(value.type).c_str(),
+                 Object::object_to_str(value).c_str());
+    return;
+  }
+  Expression *e = nullptr;
+  e = dynamic_cast<Expression *>(s);
+  if (e != nullptr) {
+    // do something
+    visit(e->expression);
+    return;
+  }
+  Var *v = nullptr;
+  v = dynamic_cast<Var *>(s);
+  if (v != nullptr) {
+    // do something
+    const Object &value = visit(v->initializer);
+    env.define(v->name->literal_string, std::move(value));
+    return;
+  }
+  report("Could not evaluate the statement", "", 0);
 }

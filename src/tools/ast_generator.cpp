@@ -24,6 +24,7 @@ void generate_base_ast(std::string &ast_code, const std::string &class_name) {
   buffer.write_line("return \"Expr\";");
   buffer.decrease_indent();
   buffer.write_line("}");
+  buffer.write_line("virtual ~%s() {} ", class_name.c_str());
   buffer.decrease_indent();
   buffer.decrease_indent();
   buffer.decrease_indent();
@@ -71,6 +72,14 @@ void generate_ast(const std::string &rule, const std::string &base_name,
   buffer.write_line("return \"%s\";", class_name.c_str());
   buffer.decrease_indent();
   buffer.write_line("}");
+  buffer.write_line("");
+  buffer.write_line("~%s() {", class_name.c_str());
+  buffer.increase_indent();
+  for (const auto &item : components) {
+    buffer.write_line("delete %s;", item.second.c_str());
+  }
+  buffer.decrease_indent();
+  buffer.write_line("}");
   buffer.decrease_indent();
   buffer.decrease_indent();
   buffer.decrease_indent();
@@ -104,28 +113,32 @@ bool generate_code(std::ofstream &ofs, const std::string file_contents) {
     spdlog::error("Could not write contents to output file");
     return false;
   }
-  if (!getline(input_stringstream, rule)) {
-    spdlog::error("Could not read the given grammar file");
-    return false;
-  }
-  if (rule.find("Basename") == std::string::npos) {
-    spdlog::error("Could not find the Basename");
-    return false;
-  }
-  auto basename_split = split(rule, " ");
-  assert(basename_split.size() == 2);
-  std::string basename = basename_split[1];
-  trim(basename);
-  generate_base_ast(code, basename);
-  if (!write_code(ofs, code)) {
-    spdlog::error("Could not write contents to output file");
-    return false;
-  }
-  while (getline(input_stringstream, rule)) {
-    generate_ast(rule, basename, code);
+  while (true) {
+    if (!getline(input_stringstream, rule)) {
+      break;
+    }
+    if (rule.find("Basename") == std::string::npos) {
+      spdlog::error("Could not find the Basename");
+      return false;
+    }
+    auto basename_split = split(rule, " ");
+    assert(basename_split.size() == 2);
+    std::string basename = basename_split[1];
+    trim(basename);
+    generate_base_ast(code, basename);
     if (!write_code(ofs, code)) {
       spdlog::error("Could not write contents to output file");
       return false;
+    }
+    while (getline(input_stringstream, rule)) {
+      if (rule == "---") {
+        break;
+      }
+      generate_ast(rule, basename, code);
+      if (!write_code(ofs, code)) {
+        spdlog::error("Could not write contents to output file");
+        return false;
+      }
     }
   }
   return true;

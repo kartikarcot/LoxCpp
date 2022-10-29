@@ -8,7 +8,7 @@ add_library(scanner scanner.cpp utils.cpp)
 target_include_directories(scanner PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(scanner PUBLIC spdlog token)
 
-add_library(eval eval.cpp utils.cpp)
+add_library(eval eval.cpp utils.cpp env.cpp)
 target_include_directories(eval PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(eval PUBLIC spdlog token)
 
@@ -18,6 +18,7 @@ target_link_libraries(parser PUBLIC spdlog token)
 
 add_library(printer printer.cpp)
 target_include_directories(printer PUBLIC ${CMAKE_SOURCE_DIR}/include)
+target_link_libraries(printer PUBLIC spdlog)
 
 add_executable(cpplox main.cpp lox.cpp)
 target_include_directories(cpplox PRIVATE ${CMAKE_SOURCE_DIR}/include)

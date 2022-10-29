@@ -21,7 +21,14 @@ void Parser::init(const std::vector<Token> &tokens) {
 
 Expr *Parser::expression() {
   spdlog::debug("Parsing expression");
-  return equality();
+  Expr *e = equality();
+  Token t;
+  // if there is a token that is not a semicolon then there was a parser error!
+  if (peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
+    spdlog::error("Could not parse the expression");
+    return NULL;
+  }
+  return e;
 }
 
 Expr *Parser::equality() {
@@ -155,13 +162,23 @@ Expr *Parser::unary() {
 Expr *Parser::primary() {
   spdlog::debug("Parsing primary");
   if (match({LEFT_PAREN})) {
+    // if a grouped then start from the top
     Expr *expr = expression();
     if (!match({RIGHT_PAREN})) {
       spdlog::error("Could not parse");
       return NULL;
     }
     return expr;
+  } else if (match({IDENTIFIER})) {
+    // if identifier then create a variable node
+    Expr *expr = new Variable();
+    static_cast<Variable *>(expr)->name = new Token();
+    previous(*static_cast<Variable *>(expr)->name);
+    spdlog::debug("Parsing identifier {}",
+                  static_cast<Variable *>(expr)->name->literal_string.c_str());
+    return expr;
   } else {
+    // otherwise it has to be a literal or some parse error
     Token t;
     if (!peek(t)) {
       spdlog::error("Could not parse");
@@ -169,6 +186,7 @@ Expr *Parser::primary() {
     }
     Expr *expr = new Literal();
     static_cast<Literal *>(expr)->value = new Token(t);
+    spdlog::debug("Parsing literal {}", t.literal_string.c_str());
     advance(t);
     return expr;
   }
@@ -218,4 +236,124 @@ bool Parser::previous(Token &t) {
   return true;
 }
 
+// This function advances our token iterator to the next statement
+// We will use this when we fail to parse a statement.
+void Parser::synchronize() {
+  Token t;
+  advance(t);
+  while (!is_at_end()) {
+    if (previous(t) && t.token_type_ == SEMICOLON)
+      return;
+    peek(t);
+    switch (t.token_type_) {
+    case CLASS:
+    case FUN:
+    case FOR:
+    case IF:
+    case WHILE:
+    case PRINT:
+    case RETURN:
+      return;
+    default:
+      advance(t);
+      break;
+    }
+  }
+}
+
 Expr *Parser::parse() { return expression(); }
+
+Stmt *Parser::parse_statement() {
+  // consume statement
+  Token t;
+  peek(t);
+  switch (t.token_type_) {
+  case PRINT: {
+    match({PRINT});
+    Expr *expr = expression();
+    if (!expr) {
+      return {};
+    }
+    if (!match({SEMICOLON})) {
+      report("Missing semicolon at the end of the statement", "", 0);
+      return {};
+    }
+    Print *p = new Print();
+    p->expression = expr;
+    return p;
+    break;
+  }
+  default: {
+    // evaluate as an expression
+    Expr *expr = expression();
+    if (!expr) {
+      return {};
+    }
+    Expression *ex = new Expression();
+    if (!match({SEMICOLON})) {
+      report("Missing semicolon at the end of the statement", "", 0);
+      return {};
+    }
+    ex->expression = expr;
+    return ex;
+    break;
+  }
+  }
+}
+
+Stmt *Parser::parse_var_declaration() {
+  Token *t = new Token();
+  if (!advance(*t) || t->token_type_ != IDENTIFIER) {
+    report("Missing/Invalid identifier in variable declaration statement", "",
+           0);
+  }
+  if (match({EQUAL})) {
+    Expr *ex = expression();
+    if (ex) {
+      Var *var = new Var();
+      var->name = t;
+      var->initializer = ex;
+      if (match({SEMICOLON})) {
+        return var;
+      } else {
+        report("Missing ; in variable declaration statement", "", 0);
+      }
+    } else {
+      report("Could not parse the expression assigned to the variable", "", 0);
+    }
+  } else {
+    report("Missing = in variable declaration statement", "", 0);
+  }
+  // if we reached here we should delete heap variable that was not used
+  delete t;
+  return nullptr;
+}
+
+Stmt *Parser::parse_declaration() {
+  Stmt *s = nullptr;
+  // if we match a var start point then we are a variable declaration
+  if (match({VAR})) {
+    s = parse_var_declaration();
+
+  } else {
+    // else parse it as a statement
+    s = parse_statement();
+  }
+  // if parse failed then synchronize
+  if (s == nullptr) {
+    synchronize();
+  }
+  // return a parse-tree expression/NULL
+  return s;
+}
+
+std::vector<Stmt *> Parser::parse_stmts() {
+  std::vector<Stmt *> statements;
+  while (!is_at_end()) {
+    auto expr = parse_declaration();
+    if (!expr)
+      return {};
+    statements.push_back(expr);
+  }
+  return statements;
+}

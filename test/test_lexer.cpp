@@ -17,19 +17,19 @@ TEST(LexerTest, lexer_test_1) {
   scanner.init("1+2+3+4+5");
   EXPECT_TRUE(scanner.scan());
   auto tokens = scanner.get_tokens();
-  std::vector<TokenType> types = {NUMBER, PLUS,   NUMBER, PLUS,  NUMBER,
-                                  PLUS,   NUMBER, PLUS,   NUMBER};
+  std::vector<TokenType> types = {NUMBER, PLUS,   NUMBER, PLUS,   NUMBER,
+                                  PLUS,   NUMBER, PLUS,   NUMBER, END_OF_FILE};
   for (int i = 0; i < tokens.size(); i++) {
     EXPECT_EQ(tokens[i].token_type_, types[i]);
   }
-  EXPECT_EQ(tokens.size(), 9);
+  EXPECT_EQ(tokens.size(), 10);
 }
 
 TEST(LexerTest, lexer_test_2) {
   Scanner scanner;
   scanner.init("1+2=abs");
   EXPECT_TRUE(scanner.scan());
-  EXPECT_EQ(scanner.get_tokens().size(), 5);
+  EXPECT_EQ(scanner.get_tokens().size(), 6);
 }
 
 int main(int argc, char **argv) {

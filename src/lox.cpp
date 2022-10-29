@@ -1,5 +1,4 @@
 #include "lox.h"
-#include "eval.h"
 #include "printer.h"
 #include "spdlog/sinks/ansicolor_sink.h"
 #include "spdlog/spdlog.h"
@@ -13,11 +12,12 @@ void Lox::run(const std::string &lox_code) {
   spdlog::debug("Input string {0}", lox_code);
   auto tokens = scanner_.get_tokens();
   parser_.init(tokens);
-  Expr *e = parser_.parse();
-  PrettyPrinter p;
-  spdlog::info("{0}", p.paranthesize(e));
-  Evaluator eval;
-  spdlog::info("{0}", Object::object_to_str(eval.eval(e)).c_str());
+  auto stmts = parser_.parse_stmts();
+  // Expr *e = parser_.parse();
+  // PrettyPrinter p;
+  // spdlog::info("{0}", p.paranthesize(e));
+  // spdlog::info("{0}", Object::object_to_str(eval.eval(e)).c_str());
+  eval_.eval(stmts);
 }
 
 void Lox::run_prompt() {

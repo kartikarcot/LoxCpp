@@ -20,8 +20,13 @@ class Parser {
   bool previous(Token &t);
   bool is_at_end();
   int current_ = -1;
+  void synchronize();
 
 public:
   void init(const std::vector<Token> &tokens);
   Expr *parse();
+  std::vector<Stmt *> parse_stmts();
+  Stmt *parse_declaration();
+  Stmt *parse_var_declaration();
+  Stmt *parse_statement();
 };
