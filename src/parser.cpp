@@ -220,37 +220,77 @@ bool Parser::previous(Token &t) {
 
 Expr *Parser::parse() { return expression(); }
 
+Stmt *Parser::parse_statement() {
+  // consume statement
+  Token t;
+  peek(t);
+  switch (t.token_type_) {
+  case PRINT: {
+    match({PRINT});
+    Expr *expr = expression();
+    if (!match({SEMICOLON})) {
+      report("Missing semicolon at the end of the statement", "", 0);
+      return {};
+    }
+    Print *p = new Print();
+    p->expression = expr;
+    return p;
+    break;
+  }
+  default: {
+    // evaluate as an expression
+    Expr *expr = expression();
+    Expression *ex = new Expression();
+    if (!match({SEMICOLON})) {
+      report("Missing semicolon at the end of the statement", "", 0);
+      return {};
+    }
+    ex->expression = expr;
+    return ex;
+    break;
+  }
+  }
+}
+
+Stmt *Parser::parse_var_declaration() {
+  Token *t = new Token();
+  if (!advance(*t) || t->token_type_ != IDENTIFIER) {
+    report("Missing/Invalid identifier in variable declaration statement", "",
+           0);
+  }
+  if (match({EQUAL})) {
+    Expr *ex = expression();
+    if (ex) {
+      Var *var = new Var();
+      var->name = t;
+      var->initializer = ex;
+      if (match({SEMICOLON})) {
+        return var;
+      } else {
+        report("Missing ; in variable declaration statement", "", 0);
+      }
+    } else {
+      report("Could not parse the expression assigned to the variable", "", 0);
+    }
+  } else {
+    report("Missing = in variable declaration statement", "", 0);
+  }
+  // if we reached here we should delete heap variable that was not used
+  delete t;
+  return nullptr;
+}
+
+Stmt *Parser::parse_declaration() {
+  if (match({VAR})) {
+    return parse_var_declaration();
+  }
+  return parse_statement();
+}
+
 std::vector<Stmt *> Parser::parse_stmts() {
   std::vector<Stmt *> statements;
   while (!is_at_end()) {
-    Token t;
-    peek(t);
-    switch (t.token_type_) {
-    case PRINT: {
-      match({PRINT});
-      Expr *expr = expression();
-      if (!match({SEMICOLON})) {
-        report("Missing semicolon at the end of the statement", "", 0);
-		return {};
-      }
-      Print *p = new Print();
-      p->expression = expr;
-      statements.push_back(p);
-      break;
-    }
-    default: {
-      // evaluate as an expression
-      Expr *expr = expression();
-      Expression *ex = new Expression();
-      if (!match({SEMICOLON})) {
-        report("Missing semicolon at the end of the statement", "", 0);
-		return {};
-      }
-      ex->expression = expr;
-      statements.push_back(ex);
-      break;
-    }
-    }
+    statements.push_back(parse_declaration());
   }
   return statements;
 }

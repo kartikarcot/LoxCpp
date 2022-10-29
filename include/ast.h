@@ -69,6 +69,18 @@ class Unary : public Expr {
     }
 };
 
+class Variable : public Expr {
+  public:
+    Token* name;
+    virtual std::string print_type() {
+      return "Variable";
+    }
+    
+    ~Variable() {
+      delete name;
+    }
+};
+
 class Stmt{
   public:
     template <typename T, typename V>
@@ -102,6 +114,20 @@ class Print : public Stmt {
     
     ~Print() {
       delete expression;
+    }
+};
+
+class Var : public Stmt {
+  public:
+    Token* name;
+    Expr* initializer;
+    virtual std::string print_type() {
+      return "Var";
+    }
+    
+    ~Var() {
+      delete name;
+      delete initializer;
     }
 };
 

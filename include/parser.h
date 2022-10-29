@@ -24,5 +24,8 @@ class Parser {
 public:
   void init(const std::vector<Token> &tokens);
   Expr *parse();
-  std::vector<Stmt*> parse_stmts();
+  std::vector<Stmt *> parse_stmts();
+  Stmt *parse_declaration();
+  Stmt *parse_var_declaration();
+  Stmt *parse_statement();
 };
