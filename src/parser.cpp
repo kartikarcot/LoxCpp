@@ -171,11 +171,12 @@ Expr *Parser::primary() {
     return expr;
   } else if (match({IDENTIFIER})) {
     // if identifier then create a variable node
-    Variable *var = new Variable();
-    var->name = new Token();
-    previous(*var->name);
-    spdlog::debug("Parsing identifier {}", var->name->literal_string.c_str());
-    return var;
+    Expr *expr = new Variable();
+    static_cast<Variable *>(expr)->name = new Token();
+    previous(*static_cast<Variable *>(expr)->name);
+    spdlog::debug("Parsing identifier {}",
+                  static_cast<Variable *>(expr)->name->literal_string.c_str());
+    return expr;
   } else {
     // otherwise it has to be a literal or some parse error
     Token t;
@@ -270,6 +271,9 @@ Stmt *Parser::parse_statement() {
   case PRINT: {
     match({PRINT});
     Expr *expr = expression();
+    if (!expr) {
+      return {};
+    }
     if (!match({SEMICOLON})) {
       report("Missing semicolon at the end of the statement", "", 0);
       return {};
@@ -282,6 +286,9 @@ Stmt *Parser::parse_statement() {
   default: {
     // evaluate as an expression
     Expr *expr = expression();
+    if (!expr) {
+      return {};
+    }
     Expression *ex = new Expression();
     if (!match({SEMICOLON})) {
       report("Missing semicolon at the end of the statement", "", 0);
@@ -343,7 +350,10 @@ Stmt *Parser::parse_declaration() {
 std::vector<Stmt *> Parser::parse_stmts() {
   std::vector<Stmt *> statements;
   while (!is_at_end()) {
-    statements.push_back(parse_declaration());
+    auto expr = parse_declaration();
+    if (!expr)
+      return {};
+    statements.push_back(expr);
   }
   return statements;
 }

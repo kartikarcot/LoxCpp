@@ -1,4 +1,5 @@
 #pragma once
+#include "eval.h"
 #include "parser.h"
 #include "scanner.h"
 #include "spdlog/spdlog.h"
@@ -8,6 +9,7 @@ class Lox {
   bool had_error_ = false;
   Scanner scanner_;
   Parser parser_;
+  Evaluator eval_;
 
 public:
   void error(const std::string &message, int line_no);

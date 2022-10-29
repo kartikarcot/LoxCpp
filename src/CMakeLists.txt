@@ -8,7 +8,7 @@ add_library(scanner scanner.cpp utils.cpp)
 target_include_directories(scanner PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(scanner PUBLIC spdlog token)
 
-add_library(eval eval.cpp utils.cpp)
+add_library(eval eval.cpp utils.cpp env.cpp)
 target_include_directories(eval PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(eval PUBLIC spdlog token)
 

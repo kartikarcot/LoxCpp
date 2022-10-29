@@ -227,14 +227,13 @@ TEST(EvalTest, binary_expr_test_14) {
   l2->value = new Token(NUMBER, "14", new float(14), 0);
 
   Binary expr;
-  expr.op = new Token(EQUAL, "=", nullptr, 0);
+  expr.op = new Token(BANG_EQUAL, "==", nullptr, 0);
   expr.right = l1;
   expr.left = l2;
   // evaluate the tree
   Evaluator eval;
   Object obj = eval.eval(&expr);
-  EXPECT_EQ(obj.type, FLOAT);
-  EXPECT_NEAR((*(float *)obj.val), 13, 6e-5);
+  EXPECT_TRUE((*(bool *)obj.val));
 }
 
 TEST(EvalTest, binary_expr_test_15) {
@@ -245,7 +244,7 @@ TEST(EvalTest, binary_expr_test_15) {
   l2->value = new Token(NUMBER, "13", new float(12), 0);
 
   Binary expr;
-  expr.op = new Token(EQUAL_EQUAL, "!=", nullptr, 0);
+  expr.op = new Token(EQUAL_EQUAL, "==", nullptr, 0);
   expr.right = l1;
   expr.left = l2;
   // evaluate the tree

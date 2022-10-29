@@ -9,6 +9,18 @@ public:
   virtual ~Expr() {}
 };
 
+class Assign : public Expr {
+public:
+  Token *name;
+  Expr *value;
+  virtual std::string print_type() { return "Assign"; }
+
+  ~Assign() {
+    delete name;
+    delete value;
+  }
+};
+
 class Binary : public Expr {
 public:
   Expr *left;

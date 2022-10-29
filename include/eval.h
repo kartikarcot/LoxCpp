@@ -1,101 +1,7 @@
+#pragma once
 #include "ast.h"
-
-enum ObjectType { STR, FLOAT, BOOL, UNDEFINED };
-// A container that can hold a pointer
-// to a value and its type
-struct Object {
-  ObjectType type = UNDEFINED;
-  void *val = NULL;
-  Object(){};
-  Object(ObjectType type, void *val) : type(type), val(val){};
-  void copy_data(const Object &o) {
-    switch (o.type) {
-    case STR:
-      type = o.type;
-      val = new char[strlen((char *)o.val) + 1];
-      strcpy((char *)val, (char *)o.val);
-      break;
-    case FLOAT:
-      type = o.type;
-      val = new float(*(float *)o.val);
-      break;
-    case BOOL:
-      type = o.type;
-      val = new bool(*(bool *)o.val);
-      break;
-    default:
-      type = UNDEFINED;
-      val = NULL;
-      break;
-    }
-  }
-  // copy constructor
-  Object(const Object &o) { copy_data(o); }
-
-  // assignment operator
-  Object &operator=(const Object &o) {
-    this->release_data();
-    this->copy_data(o);
-    return *this;
-  }
-
-  // destructor
-  ~Object() { release_data(); }
-
-  void release_data() {
-    switch (type) {
-    case STR:
-      delete (char *)val;
-      break;
-    case FLOAT:
-      delete (float *)val;
-      break;
-    case BOOL:
-      delete (bool *)val;
-      break;
-    default:
-      break;
-    }
-    type = UNDEFINED;
-    val = NULL;
-  }
-
-  // making this return std string since we dont want to worry about
-  // deallocating this. it is mostly used for logging
-  static std::string type_to_str(ObjectType type) {
-    char *str = new char[6];
-    switch (type) {
-    case STR:
-      return "STR";
-    case FLOAT:
-      return "FLOAT";
-    case BOOL:
-      return "BOOL";
-    default:
-      return "UNDEFINED";
-      break;
-    }
-    return str;
-  }
-
-  // making this return std string since we dont want to worry about
-  // deallocating this. it is mostly used for logging
-  static std::string object_to_str(Object val) {
-    switch (val.type) {
-    case STR:
-      return std::string((char *)val.val);
-    case FLOAT:
-      return std::to_string(*(float *)val.val);
-    case BOOL:
-      if (*(bool *)val.val)
-        return "true";
-      else
-        return "false";
-    default:
-      return "UNDEFINED";
-    }
-  }
-};
+#include "env.h"
+#include "object.h"
 
 class Evaluator {
 private:
@@ -103,8 +9,10 @@ private:
   Object visit_binary(Binary *b);
   Object visit_literal(Literal *l);
   Object visit_grouping(Grouping *g);
+  Object visit_variable(Variable *v);
 
 public:
+  Environment env;
   Object eval(Expr *e);
   void eval(std::vector<Stmt *> stmts);
   Object visit(Expr *e);

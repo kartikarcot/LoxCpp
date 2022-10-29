@@ -1,4 +1,5 @@
 Basename Expr
+Assign   : Token name, Expr value
 Binary   : Expr left, Token op, Expr right
 Grouping : Expr expression
 Literal  : Token value
@@ -7,5 +8,5 @@ Variable : Token name
 ---
 Basename Stmt
 Expression : Expr expression
-Print        : Expr expression
+Print      : Expr expression
 Var        : Token name, Expr initializer
