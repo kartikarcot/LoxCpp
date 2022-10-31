@@ -19,9 +19,43 @@ void Parser::init(const std::vector<Token> &tokens) {
   return;
 }
 
+Expr *Parser::assignment() {
+  // try to match an equality or other subsumed
+  // lower level expressions
+  Expr *e = equality();
+  if (e == NULL) {
+    spdlog::error("Could not parse the expression");
+    return NULL;
+  }
+  if (match({EQUAL})) {
+    // if we still have a trailing equals then maybe lhs is an
+    // assignable target. Check if the lhs evaluates to a variable
+    // Right now, the only valid target is a simple variable expression, but
+    // we’ll add fields later.
+    Variable *v = dynamic_cast<Variable *>(e);
+    if (v == nullptr) {
+      // this is bad call a parser error
+      spdlog::error("Could not parse the expression");
+      return NULL;
+    }
+    // otherwise this means maybe there is a valid expression on the other side
+    Expr *eval_expr = assignment();
+    if (eval_expr == NULL) {
+      spdlog::error("Could not parse the expression");
+      return NULL;
+    }
+    Assign *a = new Assign();
+    a->name = v->name;
+    a->value = eval_expr;
+    return a;
+  } else {
+    return e;
+  }
+}
+
 Expr *Parser::expression() {
   spdlog::debug("Parsing expression");
-  Expr *e = equality();
+  Expr *e = assignment();
   Token t;
   // if there is a token that is not a semicolon then there was a parser error!
   if (peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
@@ -351,8 +385,10 @@ std::vector<Stmt *> Parser::parse_stmts() {
   std::vector<Stmt *> statements;
   while (!is_at_end()) {
     auto expr = parse_declaration();
-    if (!expr)
+    if (!expr) {
+      spdlog::error("Could not parse expression");
       return {};
+    }
     statements.push_back(expr);
   }
   return statements;

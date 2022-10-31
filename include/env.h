@@ -9,5 +9,6 @@ public:
 
 public:
   void define(const std::string &name, const Object &value);
+  void assign(const std::string &name, const Object &value);
   Object *get(const Token &t);
 };

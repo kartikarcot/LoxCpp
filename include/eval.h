@@ -10,6 +10,7 @@ private:
   Object visit_literal(Literal *l);
   Object visit_grouping(Grouping *g);
   Object visit_variable(Variable *v);
+  Object visit_assign(Assign *a);
 
 public:
   Environment env;
