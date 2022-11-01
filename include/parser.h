@@ -8,6 +8,7 @@
 class Parser {
   std::vector<Token> tokens_;
   Expr *expression();
+  Expr *assignment();
   Expr *equality();
   Expr *comparison();
   Expr *unary();

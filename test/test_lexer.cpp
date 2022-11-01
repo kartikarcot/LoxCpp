@@ -12,6 +12,15 @@ TEST(LexerTest, token_test_2) {
   EXPECT_EQ(10, t1.line_no);
 }
 
+TEST(LexerTest, lexer_test_0) {
+  Scanner scanner;
+  scanner.init("false");
+  scanner.scan();
+  auto tokens = scanner.get_tokens();
+  EXPECT_EQ(tokens.size(), 2);
+  EXPECT_EQ(tokens[0].token_type_, FALSE);
+}
+
 TEST(LexerTest, lexer_test_1) {
   Scanner scanner;
   scanner.init("1+2+3+4+5");

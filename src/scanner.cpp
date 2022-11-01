@@ -3,7 +3,7 @@
 #include "utils.h"
 #include <regex>
 
-const static std::unordered_map<TokenType, std::regex> token_to_regex = {
+const static std::vector<std::pair<TokenType, std::regex>> token_to_regex = {
     {LEFT_PAREN, std::regex("\\(")},
     {RIGHT_PAREN, std::regex("\\)")},
     {LEFT_BRACE, std::regex("\\{")},
@@ -27,11 +27,6 @@ const static std::unordered_map<TokenType, std::regex> token_to_regex = {
     {LESS_EQUAL, std::regex("<=")},
     {SLASH_SLASH, std::regex("//[^\n]*")},
 
-    // literals
-    {IDENTIFIER, std::regex("[_a-zA-Z][_a-zA-Z0-9]*")},
-    {STRING, std::regex("\"[^\"]*\"")},
-    {NUMBER, std::regex("[0-9]+(\\.[0-9]+)*")},
-
     // reserved keywords
     {AND, std::regex("and")},
     {CLASS, std::regex("class")},
@@ -49,6 +44,12 @@ const static std::unordered_map<TokenType, std::regex> token_to_regex = {
     {TRUE, std::regex("true")},
     {VAR, std::regex("var")},
     {WHILE, std::regex("while")},
+
+    // literals
+    {IDENTIFIER, std::regex("[_a-zA-Z][_a-zA-Z0-9]*")},
+    {STRING, std::regex("\"[^\"]*\"")},
+    {NUMBER, std::regex("[0-9]+(\\.[0-9]+)*")},
+
 };
 
 void static set_value(Token &token) {

@@ -19,13 +19,49 @@ void Parser::init(const std::vector<Token> &tokens) {
   return;
 }
 
+Expr *Parser::assignment() {
+  // try to match an equality or other subsumed
+  // lower level expressions
+  Expr *e = equality();
+  if (e == NULL) {
+    spdlog::error("Could not parse the expression");
+    return NULL;
+  }
+  if (match({EQUAL})) {
+    // if we still have a trailing equals then maybe lhs is an
+    // assignable target. Check if the lhs evaluates to a variable
+    // Right now, the only valid target is a simple variable expression, but
+    // we’ll add fields later.
+    Variable *v = dynamic_cast<Variable *>(e);
+    if (v == nullptr) {
+      // this is bad call a parser error
+      spdlog::error("Could not parse the expression");
+      return NULL;
+    }
+    // otherwise this means maybe there is a valid expression on the other side
+    Expr *eval_expr = assignment();
+    if (eval_expr == NULL) {
+      spdlog::error("Could not parse the expression");
+      return NULL;
+    }
+    Assign *a = new Assign();
+    a->name = v->name;
+    a->value = eval_expr;
+    return a;
+  } else {
+    return e;
+  }
+}
+
 Expr *Parser::expression() {
   spdlog::debug("Parsing expression");
-  Expr *e = equality();
+  Expr *e = assignment();
   Token t;
   // if there is a token that is not a semicolon then there was a parser error!
   if (peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
-    spdlog::error("Could not parse the expression");
+    spdlog::error("Could not parse the expression. End of line does not have "
+                  "semicolon. The next token is {}",
+                  token_type_to_str(t.token_type_).c_str());
     return NULL;
   }
   return e;
@@ -163,11 +199,14 @@ Expr *Parser::primary() {
   spdlog::debug("Parsing primary");
   if (match({LEFT_PAREN})) {
     // if a grouped then start from the top
-    Expr *expr = expression();
+    Expr *expr = assignment();
     if (!match({RIGHT_PAREN})) {
-      spdlog::error("Could not parse");
+      spdlog::error("Could not parse, missing right parenthesis");
       return NULL;
     }
+    Token t;
+    peek(t);
+    spdlog::debug("Next token is {}", token_type_to_str(t.token_type_).c_str());
     return expr;
   } else if (match({IDENTIFIER})) {
     // if identifier then create a variable node
@@ -351,8 +390,10 @@ std::vector<Stmt *> Parser::parse_stmts() {
   std::vector<Stmt *> statements;
   while (!is_at_end()) {
     auto expr = parse_declaration();
-    if (!expr)
+    if (!expr) {
+      spdlog::error("Could not parse expression");
       return {};
+    }
     statements.push_back(expr);
   }
   return statements;

@@ -368,6 +368,15 @@ Object Evaluator::visit_variable(Variable *v) {
   return Object();
 }
 
+Object Evaluator::visit_assign(Assign *a) {
+  const Object &obj = visit(a->value);
+  if (obj.type == UNDEFINED) {
+    return obj;
+  }
+  env.assign(a->name->literal_string, obj);
+  return obj;
+}
+
 Object Evaluator::visit(Expr *e) {
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
@@ -393,6 +402,11 @@ Object Evaluator::visit(Expr *e) {
   v = dynamic_cast<Variable *>(e);
   if (v != nullptr) {
     return visit_variable(v);
+  }
+  Assign *a = nullptr;
+  a = dynamic_cast<Assign *>(e);
+  if (a != nullptr) {
+    return visit_assign(a);
   }
   spdlog::error("Could not evaluate the expression! No rules matched!");
 
