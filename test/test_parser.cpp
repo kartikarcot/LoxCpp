@@ -113,6 +113,31 @@ TEST(ParserTest, test_parser_6) {
                   ->value->token_type_ == TRUE);
 }
 
+TEST(ParserTest, test_parser_7) {
+  // clang-format off
+  std::vector<Token> tokens = {
+      Token(IDENTIFIER, "foo", nullptr, 0),
+      Token(EQUAL, "=", nullptr, 0),
+      Token(LEFT_PAREN, "(", nullptr, 0),
+      Token(NUMBER, "12", new float(12), 0),
+      Token(SLASH, "/", nullptr, 0),
+      Token(LEFT_PAREN, "(", nullptr, 0),
+      Token(NUMBER, "24", new float(24), 0),
+      Token(STAR, "*", nullptr, 0),
+      Token(NUMBER, "2", new float(2), 0),
+      Token(RIGHT_PAREN, ")", nullptr, 0),
+      Token(RIGHT_PAREN, ")", nullptr, 0),
+      Token(SEMICOLON, ";", nullptr, 0),
+      Token(END_OF_FILE, "", nullptr, 0)
+  };
+  // clang-format on
+  Parser p;
+  p.init(tokens);
+  auto stmts = p.parse_stmts();
+  EXPECT_TRUE(stmts.size() == 1);
+  EXPECT_TRUE(dynamic_cast<Assign *>(stmts[0]) != nullptr);
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
