@@ -59,7 +59,9 @@ Expr *Parser::expression() {
   Token t;
   // if there is a token that is not a semicolon then there was a parser error!
   if (peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
-    spdlog::error("Could not parse the expression");
+    spdlog::error("Could not parse the expression. End of line does not have "
+                  "semicolon. The next token is {}",
+                  token_type_to_str(t.token_type_).c_str());
     return NULL;
   }
   return e;
@@ -197,11 +199,14 @@ Expr *Parser::primary() {
   spdlog::debug("Parsing primary");
   if (match({LEFT_PAREN})) {
     // if a grouped then start from the top
-    Expr *expr = expression();
+    Expr *expr = assignment();
     if (!match({RIGHT_PAREN})) {
-      spdlog::error("Could not parse");
+      spdlog::error("Could not parse, missing right parenthesis");
       return NULL;
     }
+    Token t;
+    peek(t);
+    spdlog::debug("Next token is {}", token_type_to_str(t.token_type_).c_str());
     return expr;
   } else if (match({IDENTIFIER})) {
     // if identifier then create a variable node
