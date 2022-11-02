@@ -78,6 +78,14 @@ public:
   virtual ~Stmt() {}
 };
 
+class Block : public Stmt {
+public:
+  std::vector<Stmt *> statements;
+  virtual std::string print_type() { return "Block"; }
+
+  ~Block() {}
+};
+
 class Expression : public Stmt {
 public:
   Expr *expression;

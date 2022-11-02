@@ -36,7 +36,7 @@ void generate_base_ast(std::string &ast_code, const std::string &class_name) {
 void generate_ast(const std::string &rule, const std::string &base_name,
                   std::string &ast_code) {
   // get the class name
-  auto rule_split = split(rule, ":");
+  auto rule_split = split(rule, "=>");
   assert(rule_split.size() == 2);
   for (auto &item : rule_split) {
     trim(item);
@@ -65,7 +65,7 @@ void generate_ast(const std::string &rule, const std::string &base_name,
   buffer.write_line("public:");
   buffer.increase_indent();
   for (const auto &item : components) {
-    buffer.write_line("%s* %s;", item.first.c_str(), item.second.c_str());
+    buffer.write_line("%s %s;", item.first.c_str(), item.second.c_str());
   }
   buffer.write_line("virtual std::string print_type() {");
   buffer.increase_indent();
@@ -76,7 +76,9 @@ void generate_ast(const std::string &rule, const std::string &base_name,
   buffer.write_line("~%s() {", class_name.c_str());
   buffer.increase_indent();
   for (const auto &item : components) {
-    buffer.write_line("delete %s;", item.second.c_str());
+    if (*(item.first.rbegin()) == '*') {
+      buffer.write_line("delete %s;", item.second.c_str());
+    }
   }
   buffer.decrease_indent();
   buffer.write_line("}");
