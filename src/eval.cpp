@@ -373,7 +373,10 @@ Object Evaluator::visit_assign(Assign *a) {
   if (obj.type == UNDEFINED) {
     return obj;
   }
-  env.assign(a->name->literal_string, obj);
+  bool ret = env.assign(a->name->literal_string, obj);
+  if (!ret) {
+    return Object();
+  }
   return obj;
 }
 
