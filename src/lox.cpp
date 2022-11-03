@@ -9,21 +9,18 @@
 void Lox::run(const std::string &lox_code) {
   scanner_.init(lox_code);
   scanner_.scan();
-  spdlog::debug("Input string {0}", lox_code);
+  spdlog::debug("Lox Code:\n{0}", lox_code);
   auto tokens = scanner_.get_tokens();
+  spdlog::debug("Scanned tokens {}", tokens.size());
   parser_.init(tokens);
   auto stmts = parser_.parse_stmts();
-  // Expr *e = parser_.parse();
-  // PrettyPrinter p;
-  // spdlog::info("{0}", p.paranthesize(e));
-  // spdlog::info("{0}", Object::object_to_str(eval.eval(e)).c_str());
   eval_.eval(stmts);
 }
 
 void Lox::run_prompt() {
   std::string line;
   while (true) {
-    std::cout << "> ";
+    std::cout << ">>> ";
     std::getline(std::cin, line);
     // Ctrl+D signals EOF and break then
     if (std::cin.eof())

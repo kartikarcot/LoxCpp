@@ -25,7 +25,7 @@ const static std::vector<std::pair<TokenType, std::regex>> token_to_regex = {
     {GREATER_EQUAL, std::regex(">=")},
     {LESS, std::regex("<")},
     {LESS_EQUAL, std::regex("<=")},
-    {SLASH_SLASH, std::regex("//[^\n]*")},
+    {SLASH_SLASH, std::regex("//[^(\n)]*")},
 
     // reserved keywords
     {AND, std::regex("and")},
@@ -90,6 +90,9 @@ bool Scanner::parse_token(size_t &idx) {
     }
   }
   if (found) {
+    spdlog::debug("Token Found {0} : {1}",
+                  token_type_to_str(longest_match.first),
+                  std::string(source_, idx, longest_match.second).c_str());
     // add only non-comment tokens
     if (longest_match.first != TokenType::SLASH_SLASH) {
       auto &token = tokens_.emplace_back();
@@ -97,11 +100,9 @@ bool Scanner::parse_token(size_t &idx) {
       token.literal_string = std::string(source_, idx, longest_match.second);
       set_value(token);
       idx += longest_match.second;
-      spdlog::debug("{0} : {1}", token_type_to_str(token.token_type_),
-                    token.literal_string);
     } else {
       // commend line go to end
-      idx = source_.size();
+      idx += longest_match.second;
     }
     return true;
   }
