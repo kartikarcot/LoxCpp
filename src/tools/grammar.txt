@@ -1,12 +1,13 @@
 Basename Expr
-Assign   : Token name, Expr value
-Binary   : Expr left, Token op, Expr right
-Grouping : Expr expression
-Literal  : Token value
-Unary    : Token op, Expr right
-Variable : Token name
+Assign   => Token* name, Expr* value
+Binary   => Expr* left, Token* op, Expr* right
+Grouping => Expr* expression
+Literal  => Token* value
+Unary    => Token* op, Expr* right
+Variable => Token* name
 ---
 Basename Stmt
-Expression : Expr expression
-Print      : Expr expression
-Var        : Token name, Expr initializer
+Block      => std::vector<Stmt*> statements
+Expression => Expr* expression
+Print      => Expr* expression
+Var        => Token* name, Expr* initializer

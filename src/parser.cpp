@@ -322,6 +322,15 @@ Stmt *Parser::parse_statement() {
     return p;
     break;
   }
+  case LEFT_BRACE: {
+    // consume left brace
+    Token _;
+    advance(_);
+    Block *b = new Block();
+    b->statements = parse_block();
+    return b;
+    break;
+  }
   default: {
     // evaluate as an expression
     Expr *expr = expression();
@@ -384,6 +393,20 @@ Stmt *Parser::parse_declaration() {
   }
   // return a parse-tree expression/NULL
   return s;
+}
+
+std::vector<Stmt *> Parser::parse_block() {
+  std::vector<Stmt *> statements;
+  Token t;
+  // we have tokens to parse and it's not a right paren
+  while (!is_at_end() && peek(t) && t.token_type_ != RIGHT_BRACE) {
+    statements.push_back(parse_declaration());
+  }
+  if (!match({RIGHT_BRACE})) {
+    report("Expected } after block", "", 0);
+    return {};
+  }
+  return statements;
 }
 
 std::vector<Stmt *> Parser::parse_stmts() {

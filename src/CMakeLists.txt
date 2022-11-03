@@ -10,14 +10,17 @@ target_link_libraries(scanner PUBLIC spdlog token)
 
 add_library(eval eval.cpp utils.cpp env.cpp)
 target_include_directories(eval PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_dependencies(eval ast_file_gen)
 target_link_libraries(eval PUBLIC spdlog token)
 
 add_library(parser parser.cpp utils.cpp)
 target_include_directories(parser PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_dependencies(parser ast_file_gen)
 target_link_libraries(parser PUBLIC spdlog token)
 
 add_library(printer printer.cpp)
 target_include_directories(printer PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_dependencies(printer ast_file_gen)
 target_link_libraries(printer PUBLIC spdlog)
 
 add_executable(cpplox main.cpp lox.cpp)

@@ -373,7 +373,10 @@ Object Evaluator::visit_assign(Assign *a) {
   if (obj.type == UNDEFINED) {
     return obj;
   }
-  env.assign(a->name->literal_string, obj);
+  bool ret = env.assign(a->name->literal_string, obj);
+  if (!ret) {
+    return Object();
+  }
   return obj;
 }
 
@@ -414,6 +417,19 @@ Object Evaluator::visit(Expr *e) {
   return Object();
 }
 
+void Evaluator::visit_block(Block *b) {
+  assert(b != nullptr);
+  Environment old_env = env;
+  {
+    this->env = Environment(&old_env);
+    for (Stmt *st : b->statements) {
+      assert(st != nullptr);
+      visit(st);
+    }
+  }
+  this->env = old_env;
+}
+
 void Evaluator::visit(Stmt *s) {
   Print *p = nullptr;
   p = dynamic_cast<Print *>(s);
@@ -437,6 +453,12 @@ void Evaluator::visit(Stmt *s) {
     // do something
     const Object &value = visit(v->initializer);
     env.define(v->name->literal_string, std::move(value));
+    return;
+  }
+  Block *b = nullptr;
+  b = dynamic_cast<Block *>(s);
+  if (b != nullptr) {
+    visit_block(b);
     return;
   }
   report("Could not evaluate the statement", "", 0);

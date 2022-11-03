@@ -7,6 +7,12 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(googletest)
 
+add_executable(test_env test_env.cpp)
+target_link_libraries(test_env PRIVATE eval gtest spdlog)
+target_compile_definitions(test_env PUBLIC UNIT_TEST)
+add_test(NAME test_env COMMAND test_env)
+
+
 add_executable(test_parser test_parser.cpp)
 target_link_libraries(test_parser PRIVATE parser gtest spdlog)
 target_compile_definitions(test_parser PUBLIC UNIT_TEST)
