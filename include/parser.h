@@ -15,6 +15,8 @@ class Parser {
   Expr *factor();
   Expr *term();
   Expr *primary();
+  Expr *logic_or();
+  Expr *logic_and();
   bool match(std::vector<TokenType> options);
   bool peek(Token &t);
   bool advance(Token &t);

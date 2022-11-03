@@ -51,6 +51,20 @@ public:
   ~Literal() { delete value; }
 };
 
+class Logical : public Expr {
+public:
+  Expr *left;
+  Token *op;
+  Expr *right;
+  virtual std::string print_type() { return "Logical"; }
+
+  ~Logical() {
+    delete left;
+    delete op;
+    delete right;
+  }
+};
+
 class Unary : public Expr {
 public:
   Token *op;

@@ -13,3 +13,9 @@ if (4*2 > 11) {
 } else {
     print "Math prevails";
 }
+
+if ((4*2 > 11) and (3 <5)) {
+    print "AND operator seems to work";
+} else {
+    print "AND operator does not work";
+}

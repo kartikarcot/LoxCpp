@@ -3,13 +3,17 @@
 #include "spdlog/spdlog.h"
 
 /*
-expression     -> equality ;
+expression     -> assignment ;
+assignment     -> IDENTIFIER "=" assignment | logic_or ;
+logic_or       -> logic_and ( "or" logic_and )* ;
+logic_and      -> equality ( "and" equality )* ;
 equality       -> comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     -> term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           -> factor ( ( "-" | "+" ) factor )* ;
 factor         -> unary ( ( "/" | "*" ) unary )* ;
 unary          -> ( "!" | "-" ) unary | primary ;
-primary        -> NUMBER | STRING | "true" | "false" | "nil" | "(" expression
+primary        -> NUMBER | STRING | IDENTIFIER | "true" | "false" | "nil" | "("
+expression
 ")" ;
 */
 
@@ -19,10 +23,61 @@ void Parser::init(const std::vector<Token> &tokens) {
   return;
 }
 
+Expr *Parser::logic_or() {
+  Expr *l_and = logic_and();
+  if (l_and == NULL) {
+    spdlog::error("[Parser::logic_or] Could not parse the expression");
+    return NULL;
+  }
+  Token *op = new Token();
+  if (peek(*op) && op->token_type_ == OR) {
+    Token _;
+    advance(_);
+    Expr *r_and = logic_and();
+    if (r_and == NULL) {
+      spdlog::error("[Parser::logic_or] Could not parse the expression");
+      return NULL;
+    }
+    Logical *l = new Logical();
+    l->left = l_and;
+    l->op = op;
+    l->right = r_and;
+    return l;
+  } else {
+    return l_and;
+  }
+}
+
+Expr *Parser::logic_and() {
+  Expr *l_eq = equality();
+  if (l_eq == NULL) {
+    spdlog::error("[Parser::logic_and] Could not parse the expression");
+    return NULL;
+  }
+  Token *op = new Token();
+  ;
+  if (peek(*op) && op->token_type_ == AND) {
+    Token _;
+    advance(_);
+    Expr *r_eq = equality();
+    if (r_eq == NULL) {
+      spdlog::error("[Parser::logic_and] Could not parse the expression");
+      return NULL;
+    }
+    Logical *l = new Logical();
+    l->left = l_eq;
+    l->op = op;
+    l->right = r_eq;
+    return l;
+  } else {
+    return l_eq;
+  }
+}
+
 Expr *Parser::assignment() {
   // try to match an equality or other subsumed
   // lower level expressions
-  Expr *e = equality();
+  Expr *e = logic_or();
   if (e == NULL) {
     spdlog::error("Could not parse the expression");
     return NULL;

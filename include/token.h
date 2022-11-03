@@ -81,20 +81,22 @@ struct Token {
     this->literal_string = t.literal_string;
     this->token_type_ = t.token_type_;
     this->line_no = t.line_no;
-    switch (t.token_type_) {
-    case NUMBER:
-      this->literal = new float(*(float *)t.literal);
-      break;
-    case FALSE:
-      this->literal = new bool(*(bool *)t.literal);
-      break;
-    case TRUE:
-      this->literal = new bool(*(bool *)t.literal);
-      break;
-    case STRING:
-      this->literal = (void *)this->literal_string.c_str();
-    default:
-      break;
+    if (t.literal != nullptr) {
+      switch (t.token_type_) {
+      case NUMBER:
+        this->literal = new float(*(float *)t.literal);
+        break;
+      case FALSE:
+        this->literal = new bool(*(bool *)t.literal);
+        break;
+      case TRUE:
+        this->literal = new bool(*(bool *)t.literal);
+        break;
+      case STRING:
+        this->literal = (void *)this->literal_string.c_str();
+      default:
+        break;
+      }
     }
   }
 
