@@ -14,6 +14,7 @@ public:
   Object visit_assign(Assign *a);
   Object eval(Expr *e);
   void visit_block(Block *b);
+  void visit_if(If *i);
   void eval(std::vector<Stmt *> stmts);
   Object visit(Expr *e);
   void visit(Stmt *s);

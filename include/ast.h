@@ -113,3 +113,17 @@ public:
     delete initializer;
   }
 };
+
+class If : public Stmt {
+public:
+  Expr *condition;
+  Stmt *thenBranch;
+  Stmt *elseBranch;
+  virtual std::string print_type() { return "If"; }
+
+  ~If() {
+    delete condition;
+    delete thenBranch;
+    delete elseBranch;
+  }
+};

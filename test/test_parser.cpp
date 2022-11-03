@@ -135,7 +135,38 @@ TEST(ParserTest, test_parser_7) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<Assign *>(stmts[0]) != nullptr);
+  EXPECT_TRUE(stmts[0] != nullptr);
+  EXPECT_TRUE(dynamic_cast<Var *>(stmts[0]) != nullptr);
+}
+
+TEST(ParserTest, test_parser_8) {
+  // clang-format off
+  std::vector<Token> tokens = {
+      Token(IF, "if", nullptr, 0),
+      Token(LEFT_PAREN, "(", nullptr, 0),
+      Token(TRUE, "true", nullptr, 0),
+      Token(RIGHT_PAREN, ")", new float(12), 0),
+      Token(LEFT_BRACE, "{", nullptr, 0),
+      Token(NUMBER, "24", new float(24), 0),
+      Token(STAR, "*", nullptr, 0),
+      Token(NUMBER, "2", new float(2), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
+      Token(RIGHT_BRACE, "}", nullptr, 0),
+      Token(ELSE, "else", nullptr, 0),
+      Token(LEFT_BRACE, "{", nullptr, 0),
+      Token(NUMBER, "24", new float(24), 0),
+      Token(STAR, "*", nullptr, 0),
+      Token(NUMBER, "2", new float(2), 0),
+      Token(SEMICOLON, ";", nullptr, 0),
+      Token(RIGHT_BRACE, "}", nullptr, 0),
+      Token(END_OF_FILE, "", nullptr, 0)
+  };
+  // clang-format on
+  Parser p;
+  p.init(tokens);
+  auto stmts = p.parse_stmts();
+  EXPECT_TRUE(stmts.size() == 1);
+  EXPECT_TRUE(dynamic_cast<If *>(stmts[0]) != nullptr);
 }
 
 int main(int argc, char **argv) {

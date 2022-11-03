@@ -9,10 +9,9 @@ print hello_world;
 var PI=3.14159;
 var radius=10;
 var area=PI*radius*radius;
+print area;
 {
     var radius=5;
     var area=PI*radius*radius;
     print area;
 }
-
-print area;

@@ -58,12 +58,14 @@ Expr *Parser::expression() {
   Expr *e = assignment();
   Token t;
   // if there is a token that is not a semicolon then there was a parser error!
-  if (peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ != END_OF_FILE)) {
-    spdlog::error("Could not parse the expression. End of line does not have "
-                  "semicolon. The next token is {}",
-                  token_type_to_str(t.token_type_).c_str());
-    return NULL;
-  }
+  /* if (peek(t) && (t.token_type_ != SEMICOLON && t.token_type_ !=
+   * END_OF_FILE)) { */
+  /*   spdlog::error("Could not parse the expression. End of line does not have
+   * " */
+  /*                 "semicolon. The next token is {}", */
+  /*                 token_type_to_str(t.token_type_).c_str()); */
+  /*   return NULL; */
+  /* } */
   return e;
 }
 
@@ -311,11 +313,11 @@ Stmt *Parser::parse_statement() {
     match({PRINT});
     Expr *expr = expression();
     if (!expr) {
-      return {};
+      return nullptr;
     }
     if (!match({SEMICOLON})) {
       report("Missing semicolon at the end of the statement", "", 0);
-      return {};
+      return nullptr;
     }
     Print *p = new Print();
     p->expression = expr;
@@ -326,21 +328,61 @@ Stmt *Parser::parse_statement() {
     // consume left brace
     Token _;
     advance(_);
+    std::vector<Stmt *> stmts;
+    if (!parse_block(stmts)) {
+      return nullptr;
+    }
+    spdlog::debug("There are {} statements in the block", stmts.size());
     Block *b = new Block();
-    b->statements = parse_block();
+    b->statements = std::move(stmts);
+    spdlog::debug("There are {} statements in the block", b->statements.size());
     return b;
+    break;
+  }
+  case IF: {
+    Token t;
+    advance(t);
+    if (!match({LEFT_PAREN})) {
+      report("Expect '(' after 'if'.", "", 0);
+      return nullptr;
+    }
+    Expr *e = expression();
+    if (e == nullptr) {
+      report("Expression inside if did not get evaluated", "", 0);
+      return nullptr;
+    }
+    if (!match({RIGHT_PAREN})) {
+      report("Expect ')' after 'if' condition", "", 0);
+      return nullptr;
+    }
+    Stmt *thenBranch = parse_statement();
+    if (thenBranch == nullptr) {
+      return thenBranch;
+    }
+    Stmt *elseBranch = nullptr;
+    if (match({ELSE})) {
+      elseBranch = parse_statement();
+      if (elseBranch == nullptr) {
+        return elseBranch;
+      }
+    }
+    If *i = new If();
+    i->condition = e;
+    i->thenBranch = thenBranch;
+    i->elseBranch = elseBranch;
+    return i;
     break;
   }
   default: {
     // evaluate as an expression
     Expr *expr = expression();
     if (!expr) {
-      return {};
+      return nullptr;
     }
     Expression *ex = new Expression();
     if (!match({SEMICOLON})) {
       report("Missing semicolon at the end of the statement", "", 0);
-      return {};
+      return nullptr;
     }
     ex->expression = expr;
     return ex;
@@ -378,6 +420,11 @@ Stmt *Parser::parse_var_declaration() {
 }
 
 Stmt *Parser::parse_declaration() {
+  // We seperate the declaration type statements from other statements because
+  // we don't want to allow certain kinds of syntax like this:
+  // if (monday) var beverage = "espresso"; Here the var declaration is
+  // just inside an if block. That could be allowed but is pointless and
+  // confusing to be allowed
   Stmt *s = nullptr;
   // if we match a var start point then we are a variable declaration
   if (match({VAR})) {
@@ -395,18 +442,19 @@ Stmt *Parser::parse_declaration() {
   return s;
 }
 
-std::vector<Stmt *> Parser::parse_block() {
-  std::vector<Stmt *> statements;
+bool Parser::parse_block(std::vector<Stmt *> &statements) {
   Token t;
   // we have tokens to parse and it's not a right paren
+  spdlog::debug("Entered parsing block");
   while (!is_at_end() && peek(t) && t.token_type_ != RIGHT_BRACE) {
+    spdlog::debug("Parsing statement for block");
     statements.push_back(parse_declaration());
   }
   if (!match({RIGHT_BRACE})) {
     report("Expected } after block", "", 0);
-    return {};
+    return false;
   }
-  return statements;
+  return true;
 }
 
 std::vector<Stmt *> Parser::parse_stmts() {

@@ -1,0 +1,15 @@
+if (true) {
+    print "In If Block";
+} else {
+    print "In else Block";
+}
+
+if (2<3) {
+    print "2 is less than 3";
+}
+
+if (4*2 > 11) {
+    print "Math is wrong";
+} else {
+    print "Math prevails";
+}

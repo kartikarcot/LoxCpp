@@ -423,6 +423,7 @@ void Evaluator::visit_block(Block *b) {
   {
     this->env = Environment(&old_env);
     for (Stmt *st : b->statements) {
+      spdlog::debug("Evaluating stmt in block");
       assert(st != nullptr);
       visit(st);
     }
@@ -444,6 +445,7 @@ void Evaluator::visit(Stmt *s) {
   e = dynamic_cast<Expression *>(s);
   if (e != nullptr) {
     // do something
+    spdlog::debug("In expression eval");
     visit(e->expression);
     return;
   }
@@ -458,8 +460,31 @@ void Evaluator::visit(Stmt *s) {
   Block *b = nullptr;
   b = dynamic_cast<Block *>(s);
   if (b != nullptr) {
+    spdlog::debug("In block eval");
     visit_block(b);
     return;
   }
+  If *i = nullptr;
+  i = dynamic_cast<If *>(s);
+  if (i != nullptr) {
+    spdlog::debug("In if block eval");
+    visit_if(i);
+    return;
+  }
   report("Could not evaluate the statement", "", 0);
+}
+
+void Evaluator::visit_if(If *i) {
+  Object o = visit(i->condition);
+  if (o.type == UNDEFINED) {
+    report("Could not evaluate the expression in the if block", "", 0);
+    return;
+  }
+  if (is_truthy(o)) {
+    spdlog::debug("In the if branch");
+    visit(i->thenBranch);
+  } else if (i->elseBranch != nullptr) {
+    spdlog::debug("In the else branch");
+    visit(i->elseBranch);
+  }
 }
