@@ -11,6 +11,7 @@ public:
   Object visit_literal(Literal *l);
   Object visit_grouping(Grouping *g);
   Object visit_variable(Variable *v);
+  Object visit_logical(Logical *l);
   Object visit_assign(Assign *a);
   Object eval(Expr *e);
   void visit_block(Block *b);

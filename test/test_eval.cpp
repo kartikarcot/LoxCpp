@@ -1,5 +1,6 @@
 #include "ast.h"
 #include "eval.h"
+#include "lox.h"
 #include "gtest/gtest.h"
 
 TEST(EvalTest, unary_expr_test_1) {
@@ -355,6 +356,62 @@ TEST(EvalTest, stmt_eval_test_19) {
   std::vector<Stmt *> stmts = {e1, e2, p};
   Evaluator eval;
   eval.eval(stmts);
+}
+
+TEST(EvalTest, stmt_eval_test_20) {
+  std::string test_code = R"(var a = 1;
+                            if ((2>3) or (3<2)) {
+                                a = true;
+                            } else {
+                                a = false;
+                            })";
+  Lox lox;
+  lox.run(test_code);
+  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  EXPECT_TRUE(o != nullptr);
+  EXPECT_EQ(Object::object_to_str(*o), "false");
+}
+
+TEST(EvalTest, stmt_eval_test_21) {
+  std::string test_code = R"(var a = 1;
+                            if ((5>3) or (3<2)) {
+                                a = true;
+                            } else {
+                                a = false;
+                            })";
+  Lox lox;
+  lox.run(test_code);
+  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  EXPECT_TRUE(o != nullptr);
+  EXPECT_EQ(Object::object_to_str(*o), "true");
+}
+
+TEST(EvalTest, stmt_eval_test_22) {
+  std::string test_code = R"(var a = 1;
+                            if ((5>3) and (3>2)) {
+                                a = true;
+                            } else {
+                                a = false;
+                            })";
+  Lox lox;
+  lox.run(test_code);
+  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  EXPECT_TRUE(o != nullptr);
+  EXPECT_EQ(Object::object_to_str(*o), "true");
+}
+
+TEST(EvalTest, stmt_eval_test_23) {
+  std::string test_code = R"(var a = 1;
+                            if ((5>3) and (3<2)) {
+                                a = true;
+                            } else {
+                                a = false;
+                            })";
+  Lox lox;
+  lox.run(test_code);
+  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  EXPECT_TRUE(o != nullptr);
+  EXPECT_EQ(Object::object_to_str(*o), "false");
 }
 
 int main(int argc, char **argv) {

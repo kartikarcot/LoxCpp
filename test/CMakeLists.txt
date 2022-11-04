@@ -23,6 +23,6 @@ target_compile_definitions(test_lexer PUBLIC UNIT_TEST)
 add_test(NAME test_lexer COMMAND test_lexer)
 
 add_executable(test_eval test_eval.cpp)
-target_link_libraries(test_eval PRIVATE eval gtest spdlog)
+target_link_libraries(test_eval PRIVATE eval lox gtest spdlog)
 target_compile_definitions(test_lexer PUBLIC UNIT_TEST)
 add_test(NAME test_eval COMMAND test_eval)

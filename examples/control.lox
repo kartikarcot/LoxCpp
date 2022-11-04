@@ -14,8 +14,8 @@ if (4*2 > 11) {
     print "Math prevails";
 }
 
-if ((4*2 > 11) and (3 <5)) {
-    print "AND operator seems to work";
+if ((4*2 > 11) and (3<5)) {
+    print "AND operator not seems to work";
 } else {
-    print "AND operator does not work";
+    print "AND operator does work";
 }

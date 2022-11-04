@@ -380,6 +380,37 @@ Object Evaluator::visit_assign(Assign *a) {
   return obj;
 }
 
+Object Evaluator::visit_logical(Logical *l) {
+  char error_str[60];
+  snprintf(error_str, 60, "Could not evaluate the logical literal: %s",
+           l->op->literal_string.c_str());
+  Object l_res = visit(l->left);
+  if (l_res.type == UNDEFINED) {
+    error(error_str, l->op->line_no);
+    return l_res;
+  }
+  bool l_truthy = is_truthy(l_res);
+  if (l_truthy && l->op->token_type_ == OR) {
+    return Object(BOOL, new bool(true));
+  }
+  if (!l_truthy && l->op->token_type_ == AND) {
+    return Object(BOOL, new bool(false));
+  }
+  Object r_res = visit(l->right);
+  if (r_res.type == UNDEFINED) {
+    error(error_str, l->op->line_no);
+    return r_res;
+  }
+  bool r_truthy = is_truthy(r_res);
+  if (r_truthy && l->op->token_type_ == OR) {
+    return Object(BOOL, new bool(true));
+  }
+  if (r_truthy && l->op->token_type_ == AND) {
+    return Object(BOOL, new bool(true));
+  }
+  return Object(BOOL, new bool(false));
+}
+
 Object Evaluator::visit(Expr *e) {
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
@@ -410,6 +441,11 @@ Object Evaluator::visit(Expr *e) {
   a = dynamic_cast<Assign *>(e);
   if (a != nullptr) {
     return visit_assign(a);
+  }
+  Logical *lo = nullptr;
+  lo = dynamic_cast<Logical *>(e);
+  if (lo != nullptr) {
+    return visit_logical(lo);
   }
   spdlog::error("Could not evaluate the expression! No rules matched!");
 

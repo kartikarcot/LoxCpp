@@ -23,8 +23,14 @@ target_include_directories(printer PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_dependencies(printer ast_file_gen)
 target_link_libraries(printer PUBLIC spdlog)
 
-add_executable(cpplox main.cpp lox.cpp)
+add_library(lox lox.cpp)
+target_include_directories(lox PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_dependencies(lox ast_file_gen)
+target_link_libraries(lox PUBLIC spdlog parser scanner printer eval)
+
+
+add_executable(cpplox main.cpp)
 target_include_directories(cpplox PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(cpplox PRIVATE spdlog parser scanner printer eval)
+target_link_libraries(cpplox PRIVATE spdlog lox)
 add_dependencies(cpplox ast_file_gen)
 install(TARGETS cpplox DESTINATION ${INSTALL_DESTINATION})
