@@ -141,3 +141,15 @@ public:
     delete elseBranch;
   }
 };
+
+class While : public Stmt {
+public:
+  Expr *condition;
+  Stmt *body;
+  virtual std::string print_type() { return "While"; }
+
+  ~While() {
+    delete condition;
+    delete body;
+  }
+};

@@ -428,6 +428,32 @@ Stmt *Parser::parse_statement() {
     return i;
     break;
   }
+  case WHILE: {
+    Token t;
+    advance(t);
+    if (!match({LEFT_PAREN})) {
+      report("Expect '(' after 'while'.", "", 0);
+      return nullptr;
+    }
+    Expr *e = expression();
+    if (e == nullptr) {
+      report("Expression inside while did not get evaluated", "", 0);
+      return nullptr;
+    }
+    if (!match({RIGHT_PAREN})) {
+      report("Expect ')' after 'while' condition", "", 0);
+      return nullptr;
+    }
+    Stmt *whileBranch = parse_statement();
+    if (whileBranch == nullptr) {
+      return whileBranch;
+    }
+    While *w = new While();
+    w->condition = e;
+    w->body = whileBranch;
+    return w;
+    break;
+  }
   default: {
     // evaluate as an expression
     Expr *expr = expression();

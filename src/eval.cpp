@@ -507,6 +507,13 @@ void Evaluator::visit(Stmt *s) {
     visit_if(i);
     return;
   }
+  While *w = nullptr;
+  w = dynamic_cast<While *>(s);
+  if (w != nullptr) {
+    spdlog::debug("In while block eval");
+    visit_while(w);
+    return;
+  }
   report("Could not evaluate the statement", "", 0);
 }
 
@@ -522,5 +529,21 @@ void Evaluator::visit_if(If *i) {
   } else if (i->elseBranch != nullptr) {
     spdlog::debug("In the else branch");
     visit(i->elseBranch);
+  }
+}
+
+void Evaluator::visit_while(While *w) {
+  Object o = visit(w->condition);
+  if (o.type == UNDEFINED) {
+    report("Could not evaluate the expression in the while block", "", 0);
+    return;
+  }
+  while (is_truthy(o)) {
+    visit(w->body);
+    o = visit(w->condition);
+    if (o.type == UNDEFINED) {
+      report("Could not evaluate the expression in the while block", "", 0);
+      return;
+    }
   }
 }

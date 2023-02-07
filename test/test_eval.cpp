@@ -414,6 +414,19 @@ TEST(EvalTest, stmt_eval_test_23) {
   EXPECT_EQ(Object::object_to_str(*o), "false");
 }
 
+// A test to check while loop by incrementing a counter
+TEST(EvalTest, stmt_eval_test_24) {
+  std::string test_code = R"(var a = 1;
+                            while (a < 10) {
+                                a = a + 1;
+                            })";
+  Lox lox;
+  lox.run(test_code);
+  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  EXPECT_TRUE(o != nullptr);
+  EXPECT_EQ(*(float *)o->val, 10.0);
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
