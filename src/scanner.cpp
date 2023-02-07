@@ -69,7 +69,10 @@ void static set_value(Token &token) {
 
 void Scanner::chew_through_whitespace(size_t &idx) {
   while (idx < source_.size() && std::isspace(source_[idx]))
-    idx++;
+    if (source_[idx] == '\n') {
+      // current_line_++;
+    }
+  idx++;
   return;
 }
 
@@ -99,6 +102,7 @@ bool Scanner::parse_token(size_t &idx) {
       token.token_type_ = longest_match.first;
       token.literal_string = std::string(source_, idx, longest_match.second);
       set_value(token);
+      token.line_no = current_line_;
       idx += longest_match.second;
     } else {
       // commend line go to end
@@ -117,6 +121,7 @@ bool Scanner::scan() {
   //  4. the last matched token is the value for the latest token
   //  5. If this is end of string then EOF
   //  6. go to step 1
+  //  7. Also keep track of the line number by counting the number of new lines
   size_t idx = 0;
   while (true) {
     chew_through_whitespace(idx);
