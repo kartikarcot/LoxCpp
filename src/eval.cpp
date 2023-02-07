@@ -8,7 +8,8 @@ Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
 void Evaluator::eval(std::vector<Stmt *> stmts) {
   for (const auto &stmt : stmts) {
     if (stmt == nullptr) {
-      spdlog::error("Evaluator encountered a nullptr for a statement");
+      spdlog::error("Evaluator encountered a nullptr for a statement. Report "
+                    "this to askarthikkumar@gmail.com");
       exit(-1);
     }
     stmt->accept<void, Evaluator *>(this);
@@ -239,7 +240,6 @@ Object Evaluator::visit_unary(Unary *u) {
     return {BOOL, new bool(new_value)};
   } else if (u->op->token_type_ == MINUS) {
     if (!process_minus(value)) {
-
       error("Could not process the unary operation for '-' operator",
             u->op->line_no);
       // return a nill
@@ -363,6 +363,8 @@ Object Evaluator::visit_binary(Binary *b) {
 Object Evaluator::visit_variable(Variable *v) {
   Object *obj_ptr = env.get(*v->name);
   if (obj_ptr != nullptr) {
+    report("Variable " + v->name->literal_string + " is not defined", "",
+           v->name->line_no);
     return *obj_ptr;
   }
   return Object();
@@ -375,6 +377,8 @@ Object Evaluator::visit_assign(Assign *a) {
   }
   bool ret = env.assign(a->name->literal_string, obj);
   if (!ret) {
+    report("Variable " + a->name->literal_string + " is not defined", "",
+           a->name->line_no);
     return Object();
   }
   return obj;
@@ -447,7 +451,8 @@ Object Evaluator::visit(Expr *e) {
   if (lo != nullptr) {
     return visit_logical(lo);
   }
-  spdlog::error("Could not evaluate the expression! No rules matched!");
+  spdlog::error("Could not evaluate the expression! No rules matched! Report "
+                "this error to askarthikkumar@gmail.com");
 
   // Nothing matched we are returning
   return Object();
@@ -514,13 +519,13 @@ void Evaluator::visit(Stmt *s) {
     visit_while(w);
     return;
   }
-  report("Could not evaluate the statement", "", 0);
 }
 
 void Evaluator::visit_if(If *i) {
   Object o = visit(i->condition);
   if (o.type == UNDEFINED) {
-    report("Could not evaluate the expression in the if block", "", 0);
+    report("Could not evaluate the condition for the if block", "",
+           i->condition->line_no);
     return;
   }
   if (is_truthy(o)) {
@@ -535,14 +540,16 @@ void Evaluator::visit_if(If *i) {
 void Evaluator::visit_while(While *w) {
   Object o = visit(w->condition);
   if (o.type == UNDEFINED) {
-    report("Could not evaluate the expression in the while block", "", 0);
+    report("Could not evaluate the expression in the while condition", "",
+           w->condition->line_no);
     return;
   }
   while (is_truthy(o)) {
     visit(w->body);
     o = visit(w->condition);
     if (o.type == UNDEFINED) {
-      report("Could not evaluate the expression in the while block", "", 0);
+      report("Could not evaluate the expression in the while condition", "",
+             w->condition->line_no);
       return;
     }
   }

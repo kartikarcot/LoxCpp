@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "__string": "cpp",
+        "deque": "cpp",
+        "filesystem": "cpp",
+        "forward_list": "cpp",
+        "functional": "cpp",
+        "istream": "cpp",
+        "list": "cpp",
+        "regex": "cpp",
+        "string": "cpp",
+        "system_error": "cpp",
+        "tuple": "cpp",
+        "vector": "cpp"
+    }
+}

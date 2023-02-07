@@ -68,11 +68,12 @@ void static set_value(Token &token) {
 }
 
 void Scanner::chew_through_whitespace(size_t &idx) {
-  while (idx < source_.size() && std::isspace(source_[idx]))
+  while (idx < source_.size() && std::isspace(source_[idx])) {
     if (source_[idx] == '\n') {
       // current_line_++;
     }
-  idx++;
+    idx++;
+  }
   return;
 }
 

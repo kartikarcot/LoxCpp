@@ -4,6 +4,7 @@
 
 class Expr {
 public:
+  size_t line_no = 0;
   template <typename T, typename V> T accept(V v) { return v->visit(this); }
   virtual std::string print_type() { return "Expr"; }
   virtual ~Expr() {}
@@ -77,6 +78,19 @@ public:
   }
 };
 
+class Call : public Expr {
+public:
+  Expr *callee;
+  Token *paren;
+  std::vector<Expr *> arguments;
+  virtual std::string print_type() { return "Call"; }
+
+  ~Call() {
+    delete callee;
+    delete paren;
+  }
+};
+
 class Variable : public Expr {
 public:
   Token *name;
@@ -87,6 +101,7 @@ public:
 
 class Stmt {
 public:
+  size_t line_no = 0;
   template <typename T, typename V> T accept(V v) { return v->visit(this); }
   virtual std::string print_type() { return "Expr"; }
   virtual ~Stmt() {}

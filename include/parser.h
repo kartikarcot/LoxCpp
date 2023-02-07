@@ -24,6 +24,7 @@ class Parser {
   bool is_at_end();
   int current_ = -1;
   void synchronize();
+  int get_current_line();
 
 public:
   void init(const std::vector<Token> &tokens);

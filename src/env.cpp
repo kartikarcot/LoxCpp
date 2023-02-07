@@ -21,7 +21,6 @@ bool Environment::assign(const std::string &name, const Object &value) {
     ret = enclosing->assign(name, value);
   }
   if (!ret) {
-    report("Variable " + name + " is not defined", "", 0);
     return false;
   }
   return true;
@@ -37,7 +36,6 @@ Object *Environment::get(const Token &t) {
     o = enclosing->get(t);
   }
   if (o == nullptr) {
-    report("Variable " + t.literal_string + " is not defined", "", 0);
     return nullptr;
   }
   return o;

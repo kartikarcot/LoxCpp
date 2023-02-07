@@ -5,6 +5,7 @@ Grouping => Expr* expression
 Literal  => Token* value
 Logical  => Expr* left, Token* op, Expr* right
 Unary    => Token* op, Expr* right
+Call     => Expr* callee, Token* paren, std::vector<Expr*> arguments
 Variable => Token* name
 ---
 Basename Stmt
