@@ -395,79 +395,16 @@ Stmt *Parser::parse_statement() {
     break;
   }
   case IF: {
-    Token t;
-    advance(t);
-    if (!match({LEFT_PAREN})) {
-      report("Expect '(' after 'if'.", "", 0);
-      return nullptr;
-    }
-    Expr *e = expression();
-    if (e == nullptr) {
-      report("Expression inside if did not get evaluated", "", 0);
-      return nullptr;
-    }
-    if (!match({RIGHT_PAREN})) {
-      report("Expect ')' after 'if' condition", "", 0);
-      return nullptr;
-    }
-    Stmt *thenBranch = parse_statement();
-    if (thenBranch == nullptr) {
-      return thenBranch;
-    }
-    Stmt *elseBranch = nullptr;
-    if (match({ELSE})) {
-      elseBranch = parse_statement();
-      if (elseBranch == nullptr) {
-        return elseBranch;
-      }
-    }
-    If *i = new If();
-    i->condition = e;
-    i->thenBranch = thenBranch;
-    i->elseBranch = elseBranch;
-    return i;
-    break;
+    return parse_if();
   }
   case WHILE: {
-    Token t;
-    advance(t);
-    if (!match({LEFT_PAREN})) {
-      report("Expect '(' after 'while'.", "", 0);
-      return nullptr;
-    }
-    Expr *e = expression();
-    if (e == nullptr) {
-      report("Expression inside while did not get evaluated", "", 0);
-      return nullptr;
-    }
-    if (!match({RIGHT_PAREN})) {
-      report("Expect ')' after 'while' condition", "", 0);
-      return nullptr;
-    }
-    Stmt *whileBranch = parse_statement();
-    if (whileBranch == nullptr) {
-      return whileBranch;
-    }
-    While *w = new While();
-    w->condition = e;
-    w->body = whileBranch;
-    return w;
-    break;
+    return parse_while();
+  }
+  case FOR: {
+    return parse_for();
   }
   default: {
-    // evaluate as an expression
-    Expr *expr = expression();
-    if (!expr) {
-      return nullptr;
-    }
-    Expression *ex = new Expression();
-    if (!match({SEMICOLON})) {
-      report("Missing semicolon at the end of the statement", "", 0);
-      return nullptr;
-    }
-    ex->expression = expr;
-    return ex;
-    break;
+    return parse_expression_statement();
   }
   }
 }
@@ -510,7 +447,6 @@ Stmt *Parser::parse_declaration() {
   // if we match a var start point then we are a variable declaration
   if (match({VAR})) {
     s = parse_var_declaration();
-
   } else {
     // else parse it as a statement
     s = parse_statement();
@@ -549,4 +485,154 @@ std::vector<Stmt *> Parser::parse_stmts() {
     statements.push_back(expr);
   }
   return statements;
+}
+
+Stmt *Parser::parse_if() {
+  Token t;
+  advance(t);
+  if (!match({LEFT_PAREN})) {
+    report("Expect '(' after 'if'.", "", 0);
+    return nullptr;
+  }
+  Expr *e = expression();
+  if (e == nullptr) {
+    report("Expression inside if did not get evaluated", "", 0);
+    return nullptr;
+  }
+  if (!match({RIGHT_PAREN})) {
+    report("Expect ')' after 'if' condition", "", 0);
+    return nullptr;
+  }
+  Stmt *thenBranch = parse_statement();
+  if (thenBranch == nullptr) {
+    return thenBranch;
+  }
+  Stmt *elseBranch = nullptr;
+  if (match({ELSE})) {
+    elseBranch = parse_statement();
+    if (elseBranch == nullptr) {
+      return elseBranch;
+    }
+  }
+  If *i = new If();
+  i->condition = e;
+  i->thenBranch = thenBranch;
+  i->elseBranch = elseBranch;
+  return i;
+}
+
+Stmt *Parser::parse_while() {
+  Token t;
+  advance(t);
+  if (!match({LEFT_PAREN})) {
+    report("Expect '(' after 'while'.", "", 0);
+    return nullptr;
+  }
+  Expr *e = expression();
+  if (e == nullptr) {
+    report("Expression inside while did not get evaluated", "", 0);
+    return nullptr;
+  }
+  if (!match({RIGHT_PAREN})) {
+    report("Expect ')' after 'while' condition", "", 0);
+    return nullptr;
+  }
+  Stmt *whileBranch = parse_statement();
+  if (whileBranch == nullptr) {
+    return whileBranch;
+  }
+  While *w = new While();
+  w->condition = e;
+  w->body = whileBranch;
+  return w;
+}
+
+Stmt *Parser::parse_for() {
+  Token t;
+  advance(t);
+  if (!match({LEFT_PAREN})) {
+    report("Expect '(' after 'for'.", "", 0);
+    return nullptr;
+  }
+  Stmt *initializer = nullptr;
+  if (match({SEMICOLON})) {
+    initializer = nullptr;
+  } else if (match({VAR})) {
+    initializer = parse_var_declaration();
+  } else {
+    initializer = parse_expression_statement();
+  }
+  if (initializer == nullptr) {
+    report("Could not parse initializer for for loop", "", 0);
+    return nullptr;
+  }
+  Expr *condition = nullptr;
+  if (!match({SEMICOLON})) {
+    condition = expression();
+    if (condition == nullptr) {
+      report("Could not parse condition for for loop", "", 0);
+      return nullptr;
+    }
+    if (!match({SEMICOLON})) {
+      report("Expect ';' after loop condition.", "", 0);
+      return nullptr;
+    }
+  }
+  Expr *increment = nullptr;
+  if (!match({RIGHT_PAREN})) {
+    increment = expression();
+    if (increment == nullptr) {
+      report("Could not parse increment for for loop", "", 0);
+      return nullptr;
+    }
+    if (!match({RIGHT_PAREN})) {
+      report("Expect ')' after for clauses.", "", 0);
+      return nullptr;
+    }
+  }
+  Stmt *body = parse_statement();
+  if (body == nullptr) {
+    return body;
+  }
+  if (increment != nullptr) {
+    std::vector<Stmt *> body_stmts;
+    body_stmts.push_back(body);
+    Expression *ex = new Expression();
+    ex->expression = increment;
+    body_stmts.push_back(ex);
+    Block *b = new Block();
+    b->statements = body_stmts;
+    body = b;
+  }
+  if (condition == nullptr) {
+    condition = new Literal();
+    ((Literal *)condition)->value = new Token{FALSE, "false", 0, 0};
+  }
+  While *w = new While();
+  w->condition = condition;
+  w->body = body;
+  if (initializer != nullptr) {
+    std::vector<Stmt *> body_stmts;
+    body_stmts.push_back(initializer);
+    body_stmts.push_back(w);
+    Block *b = new Block();
+    b->statements = body_stmts;
+    return b;
+  }
+  return w;
+}
+
+Stmt *Parser::parse_expression_statement() {
+  // evaluate as an expression
+  Expr *expr = expression();
+  if (!expr) {
+    return nullptr;
+  }
+  Expression *ex = new Expression();
+  if (!match({SEMICOLON})) {
+    report("Missing semicolon at the end of the statement", "", 0);
+    return nullptr;
+  }
+  ex->expression = expr;
+  return ex;
 }

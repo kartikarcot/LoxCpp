@@ -32,5 +32,10 @@ public:
   Stmt *parse_declaration();
   Stmt *parse_var_declaration();
   Stmt *parse_statement();
+  Stmt *parse_if();
+  Stmt *parse_while();
+  Stmt *parse_block();
+  Stmt *parse_expression_statement();
+  Stmt *parse_for();
   bool parse_block(std::vector<Stmt *> &statements);
 };

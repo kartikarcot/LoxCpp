@@ -427,6 +427,32 @@ TEST(EvalTest, stmt_eval_test_24) {
   EXPECT_EQ(*(float *)o->val, 10.0);
 }
 
+// A test to check while loop by decrementing a counter
+TEST(EvalTest, stmt_eval_test_25) {
+  std::string test_code = R"(var a = 10;
+                            while (a > 0) {
+                                a = a - 1;
+                            })";
+  Lox lox;
+  lox.run(test_code);
+  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  EXPECT_TRUE(o != nullptr);
+  EXPECT_EQ(*(float *)o->val, 0.0);
+}
+
+// A test to check for loop by incrementing a counter
+TEST(EvalTest, stmt_eval_test_26) {
+  std::string test_code = R"(var a = 1;
+                            for (var i = 0; i < 10; i = i + 1) {
+                                a = a + 1;
+                            })";
+  Lox lox;
+  lox.run(test_code);
+  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  EXPECT_TRUE(o != nullptr);
+  EXPECT_EQ(*(float *)o->val, 11.0);
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
