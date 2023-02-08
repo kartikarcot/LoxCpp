@@ -363,10 +363,10 @@ Object Evaluator::visit_binary(Binary *b) {
 Object Evaluator::visit_variable(Variable *v) {
   Object *obj_ptr = env.get(*v->name);
   if (obj_ptr != nullptr) {
-    report("Variable " + v->name->literal_string + " is not defined", "",
-           v->name->line_no);
     return *obj_ptr;
   }
+  report("Variable " + v->name->literal_string + " is not defined", "",
+         v->name->line_no);
   return Object();
 }
 
