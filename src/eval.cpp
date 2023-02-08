@@ -270,8 +270,7 @@ static bool literal_2_object(Literal *l, Object &obj) {
   case STRING: {
     obj.type = STR;
     obj.val = new char[l->value->literal_string.size() + 1];
-    snprintf((char *)obj.val, l->value->literal_string.size(), "%s",
-             l->value->literal_string.c_str());
+    strcpy((char *)obj.val, l->value->literal_string.c_str());
     return true;
   }
   case FALSE: {
@@ -478,8 +477,7 @@ void Evaluator::visit(Stmt *s) {
   if (p != nullptr) {
     // do something
     auto value = visit(p->expression);
-    spdlog::info("{} {}", Object::type_to_str(value.type).c_str(),
-                 Object::object_to_str(value).c_str());
+    printf("%s\n", Object::object_to_str(value).c_str());
     return;
   }
   Expression *e = nullptr;
