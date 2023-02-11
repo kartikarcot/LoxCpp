@@ -1,9 +1,33 @@
 #include "eval.h"
+#include "object.h"
 #include "spdlog/spdlog.h"
 #include "token.h"
 #include "utils.h"
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
+
+// A function to get the current time
+double time_now() {
+  auto now = std::chrono::system_clock::now();
+  auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+  auto value = now_ms.time_since_epoch();
+  return value.count();
+}
+
+// A callable object that can be used to get the current time
+class Clock : public Callable {
+public:
+  Object call(std::vector<Object> args, Evaluator *) override {
+    return Object(FLOAT, new float(time_now()));
+  }
+  int arity() override { return 0; }
+};
+
+Evaluator::Evaluator() {
+  globals = Environment();
+  globals.define("clock", Object(FUNCTION, new Clock()));
+  env = globals;
+}
 
 void Evaluator::eval(std::vector<Stmt *> stmts) {
   for (const auto &stmt : stmts) {
@@ -551,4 +575,36 @@ void Evaluator::visit_while(While *w) {
       return;
     }
   }
+}
+
+Object Evaluator::visit_call(Call *c) {
+  // get the function object
+  Object callee = visit(c->callee);
+  std::vector<Object> args;
+  for (Expr *e : c->arguments) {
+    Object o = visit(e);
+    if (o.type == UNDEFINED) {
+      report("Could not evaluate the argument", "", e->line_no);
+      return o;
+    }
+    args.push_back(o);
+  }
+  if (callee.type != FUNCTION) {
+    report("Can only call functions and classes", "", c->paren->line_no);
+    return Object();
+  }
+  if (callee.val == nullptr) {
+    report("Function object not defined with a callable. Report to "
+           "askarthikkumar@gmail.com",
+           "", c->paren->line_no);
+    return Object();
+  }
+  Callable *func = (Callable *)(callee.val);
+  if (args.size() != func->arity()) {
+    report("Expected " + std::to_string(func->arity()) + " arguments but got " +
+               std::to_string(args.size()),
+           "", c->paren->line_no);
+    return Object();
+  }
+  return func->call(args, this);
 }

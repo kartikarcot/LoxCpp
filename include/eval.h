@@ -4,7 +4,10 @@
 #include "object.h"
 
 class Evaluator {
+  Environment globals;
+
 public:
+  Evaluator();
   Environment env;
   Object visit_unary(Unary *u);
   Object visit_binary(Binary *b);
@@ -13,6 +16,7 @@ public:
   Object visit_variable(Variable *v);
   Object visit_logical(Logical *l);
   Object visit_assign(Assign *a);
+  Object visit_call(Call *c);
   Object eval(Expr *e);
   void visit_block(Block *b);
   void visit_if(If *i);

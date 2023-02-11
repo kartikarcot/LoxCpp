@@ -1,6 +1,7 @@
 #include "parser.h"
 #include "ast.h"
 #include "spdlog/spdlog.h"
+#include "token.h"
 
 /*
 expression     -> assignment ;
@@ -239,7 +240,7 @@ Expr *Parser::unary() {
   if (match({BANG, MINUS})) {
     Token op;
     if (!previous(op)) {
-      spdlog::error("Could not parse");
+      report("Issue parsing code", "", tokens_[current_].line_no);
       return nullptr;
     }
     Expr *op_expr = unary();
@@ -249,7 +250,61 @@ Expr *Parser::unary() {
     expr->line_no = op.line_no;
     return expr;
   }
-  return primary();
+  return call();
+}
+
+Expr *Parser::finish_call(Expr *expr) {
+  // we have a left paren
+  // we need to parse the arguments if any exist
+  // and then the right paren
+  std::vector<Expr *> args;
+  Token t;
+  if (!peek(t)) {
+    report("Issue parsing call", "", get_current_line());
+    return nullptr;
+  }
+  if (t.token_type_ != RIGHT_PAREN) {
+    do {
+      Expr *arg = assignment();
+      if (arg == nullptr) {
+        return nullptr;
+      }
+      args.push_back(arg);
+      if (args.size() > kMaxArgs) {
+        report("Too many arguments. Max number of arguments supported is " +
+                   std::to_string(kMaxArgs),
+               "", get_current_line());
+        return nullptr;
+      }
+    } while (match({COMMA}));
+  }
+  // match the right paren
+  if (!advance(t) || t.token_type_ != RIGHT_PAREN) {
+    report("Expected )", "", get_current_line());
+    return nullptr;
+  }
+  // construct the call object
+  auto call = new Call();
+  call->callee = expr;
+  call->arguments = args;
+  call->paren = new Token(t);
+  return call;
+}
+
+Expr *Parser::call() {
+  Expr *expr = primary();
+  if (expr == nullptr) {
+    return nullptr;
+  }
+  // to allow for calls like fn(a)(b). Aka currying
+  while (true) {
+    if (match({LEFT_PAREN})) {
+      expr = finish_call(expr);
+    } else {
+      break;
+    }
+  }
+  return expr;
 }
 
 Expr *Parser::primary() {
@@ -294,6 +349,20 @@ Expr *Parser::primary() {
     return expr;
   }
   return nullptr;
+}
+
+Token Parser::consume(TokenType type, std::string message) {
+  Token t;
+  if (!peek(t)) {
+    report("Unexpected end of file", "", get_current_line());
+    return t;
+  }
+  if (t.token_type_ == type) {
+    advance(t);
+    return t;
+  }
+  report(message, "", get_current_line());
+  return t;
 }
 
 bool Parser::peek(Token &t) {
@@ -459,6 +528,72 @@ Stmt *Parser::parse_var_declaration() {
   return nullptr;
 }
 
+Stmt *Parser::parse_function() {
+  Token t;
+  if (peek(t) && t.token_type_ == IDENTIFIER) {
+    advance(t);
+  } else {
+    spdlog::info("The token type is {}", t.token_type_);
+    report("Missing/Invalid identifier in function declaration statement", "",
+           get_current_line());
+    return nullptr;
+  }
+  auto name = t;
+  if (!match({LEFT_PAREN})) {
+    report("Missing ( in function declaration statement", "",
+           get_current_line());
+    return nullptr;
+  }
+  std::vector<Token *> params;
+  while (!match({RIGHT_PAREN})) {
+    Token t;
+    if (!peek(t) || t.token_type_ != IDENTIFIER) {
+      report("Missing/Invalid identifier in function declaration statement", "",
+             get_current_line());
+      return nullptr;
+    }
+    advance(t);
+    params.push_back(new Token(t));
+    if (params.size() > kMaxArgs) {
+      report("Too many arguments in function declaration statement", "",
+             get_current_line());
+      return nullptr;
+    }
+    if (!match({COMMA})) {
+      if (!match({RIGHT_PAREN})) {
+        report("Missing ) or , in function declaration statement", "",
+               get_current_line());
+        return nullptr;
+        break;
+      } else {
+        // The we have matched a right paren, we must break
+        // to read the body
+        break;
+      }
+    }
+  }
+  // we have matched the fun <name> ( <params> ) part of the signature
+  // now we must parse the body
+  if (peek(t) && t.token_type_ == LEFT_BRACE) {
+    advance(t);
+  } else {
+    report("Missing { in function declaration statement", "",
+           get_current_line());
+    return nullptr;
+  }
+  std::vector<Stmt *> body;
+  if (!parse_block(body)) {
+    // cast to Block and iterate over the statements
+    return nullptr;
+  }
+
+  Function *f = new Function();
+  f->name = new Token(name);
+  f->params = params;
+  f->body = body;
+  return f;
+}
+
 Stmt *Parser::parse_declaration() {
   // We seperate the declaration type statements from other statements because
   // we don't want to allow certain kinds of syntax like this:
@@ -469,6 +604,8 @@ Stmt *Parser::parse_declaration() {
   // if we match a var start point then we are a variable declaration
   if (match({VAR})) {
     s = parse_var_declaration();
+  } else if (match({FUN})) {
+    s = parse_function();
   } else {
     // else parse it as a statement
     s = parse_statement();
@@ -487,7 +624,11 @@ bool Parser::parse_block(std::vector<Stmt *> &statements) {
   spdlog::debug("Entered parsing block");
   while (!is_at_end() && peek(t) && t.token_type_ != RIGHT_BRACE) {
     spdlog::debug("Parsing statement for block");
-    statements.push_back(parse_declaration());
+    auto expr = parse_declaration();
+    if (!expr) {
+      return false;
+    }
+    statements.push_back(expr);
   }
   if (!match({RIGHT_BRACE})) {
     report("Expected } after block", "", get_current_line());

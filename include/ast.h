@@ -168,3 +168,13 @@ public:
     delete body;
   }
 };
+
+class Function : public Stmt {
+public:
+  Token *name;
+  std::vector<Token *> params;
+  std::vector<Stmt *> body;
+  virtual std::string print_type() { return "Function"; }
+
+  ~Function() { delete name; }
+};
