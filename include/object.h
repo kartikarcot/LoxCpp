@@ -1,6 +1,7 @@
 #pragma once
 #include "parser.h"
 #include <cstring>
+#include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
 
@@ -32,6 +33,10 @@ struct Object {
     case BOOL:
       type = o.type;
       val = new bool(*(bool *)o.val);
+      break;
+    case FUNCTION:
+      type = o.type;
+      val = o.val;
       break;
     default:
       type = UNDEFINED;

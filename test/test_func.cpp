@@ -5,6 +5,9 @@
 
 #include "eval.h"
 #include "lox.h"
+#include "loxfun.h"
+#include "spdlog/cfg/env.h"
+#include "spdlog/spdlog.h"
 #include "gtest/gtest.h"
 
 TEST(FunctionTest, ParseSimpleFunction) {
@@ -32,7 +35,34 @@ TEST(FunctionTest, ParseSimpleFunction) {
   ASSERT_EQ(((Function *)stmts[0])->body.size(), 1);
 }
 
+// A test to parse and check if a function enters the environment
+TEST(FunctionTest, ParseFunctionAndCall) {
+  std::string test_code = R"(
+                            fun sum(a, b) {
+                                a + b;
+                            }
+                            var a = 9.0;
+                            )";
+  Scanner scanner;
+  scanner.init(test_code);
+  scanner.scan();
+  Parser parser;
+  parser.init(scanner.get_tokens());
+  std::vector<Stmt *> stmts = parser.parse_stmts();
+  Evaluator eval;
+  eval.eval(stmts);
+  ASSERT_TRUE(eval.env.get("sum") != nullptr);
+  ASSERT_TRUE(eval.env.get("a") != nullptr);
+  // assert that the object val pointer is a LoxFunction ptr
+  ASSERT_TRUE(eval.env.get("sum")->val != nullptr);
+  ASSERT_TRUE(eval.env.get("sum")->type == ObjectType::FUNCTION);
+  auto lf_ptr = (LoxFunction *)(eval.env.get("sum")->val);
+  ASSERT_TRUE(lf_ptr->arity() == 2);
+}
+
 int main(int argc, char **argv) {
+  spdlog::cfg::load_env_levels();
+  spdlog::set_pattern("%^[%l]%$ %v");
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

@@ -4,10 +4,9 @@
 #include "object.h"
 
 class Evaluator {
-  Environment globals;
-
 public:
   Evaluator();
+  Environment globals;
   Environment env;
   Object visit_unary(Unary *u);
   Object visit_binary(Binary *b);
@@ -24,4 +23,6 @@ public:
   void eval(std::vector<Stmt *> stmts);
   Object visit(Expr *e);
   void visit(Stmt *s);
+  void visit_function(Function *f);
+  void execute_block(std::vector<Stmt *> stmts, Environment *env);
 };

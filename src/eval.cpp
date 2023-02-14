@@ -1,8 +1,10 @@
 #include "eval.h"
+#include "loxfun.h"
 #include "object.h"
 #include "spdlog/spdlog.h"
 #include "token.h"
 #include "utils.h"
+#include <cstddef>
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
 
@@ -29,6 +31,8 @@ Evaluator::Evaluator() {
   env = globals;
 }
 
+// TODO(kartikarcot): take ownwership of these statements
+// and release them appropriately
 void Evaluator::eval(std::vector<Stmt *> stmts) {
   for (const auto &stmt : stmts) {
     if (stmt == nullptr) {
@@ -541,6 +545,16 @@ void Evaluator::visit(Stmt *s) {
     visit_while(w);
     return;
   }
+  Function *f = nullptr;
+  f = dynamic_cast<Function *>(s);
+  if (f != nullptr) {
+    spdlog::debug("In function block eval");
+    visit_function(f);
+    return;
+  }
+  // if we reached here then print an error
+  spdlog::error("Could not evaluate the statement! No rules matched! Report "
+                "this error to askarthikkumar@gmail.com");
 }
 
 void Evaluator::visit_if(If *i) {
@@ -607,4 +621,22 @@ Object Evaluator::visit_call(Call *c) {
     return Object();
   }
   return func->call(args, this);
+}
+
+void Evaluator::execute_block(std::vector<Stmt *> statements,
+                              Environment *env) {
+  Environment old_env = this->env;
+  {
+    this->env = Environment(env);
+    for (Stmt *s : statements) {
+      visit(s);
+    }
+  }
+  this->env = old_env;
+}
+
+void Evaluator::visit_function(Function *f) {
+  auto func = new LoxFunction(f);
+  env.define(f->name->literal_string, Object(FUNCTION, func));
+  return;
 }
