@@ -488,6 +488,12 @@ Stmt *Parser::parse_statement() {
     for_st->line_no = t.line_no;
     return for_st;
   }
+  case RETURN: {
+    match({RETURN});
+    auto return_st = parse_return();
+    return_st->line_no = t.line_no;
+    return return_st;
+  }
   default: {
     auto expr_st = parse_expression_statement();
     expr_st->line_no = t.line_no;
@@ -800,4 +806,21 @@ Stmt *Parser::parse_expression_statement() {
   spdlog::debug("Parsed expression statement");
   ex->expression = expr;
   return ex;
+}
+
+Stmt *Parser::parse_return() {
+  Token ret;
+  previous(ret);
+  Expr *expr = nullptr;
+  if (!match({SEMICOLON})) {
+    expr = expression();
+  }
+  if (!match({SEMICOLON})) {
+    report("Expect ';' after return value.", "", get_current_line());
+    return nullptr;
+  }
+  Return *r = new Return();
+  r->keyword = new Token(ret);
+  r->value = expr;
+  return r;
 }

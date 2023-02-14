@@ -13,7 +13,7 @@
 TEST(FunctionTest, ParseSimpleFunction) {
   std::string test_code = R"(
                             fun sum(a, b) {
-                                a + b;
+                                return a + b;
                             }
                             var a = 9.0;
                             )";
@@ -59,6 +59,8 @@ TEST(FunctionTest, ParseFunctionAndCall) {
   auto lf_ptr = (LoxFunction *)(eval.env.get("sum")->val);
   ASSERT_TRUE(lf_ptr->arity() == 2);
 }
+// A test to parse function declaration and function call
+// and check if the function call returns the correct value
 
 int main(int argc, char **argv) {
   spdlog::cfg::load_env_levels();

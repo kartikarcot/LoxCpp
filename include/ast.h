@@ -178,3 +178,15 @@ public:
 
   ~Function() { delete name; }
 };
+
+class Return : public Stmt {
+public:
+  Token *keyword;
+  Expr *value;
+  virtual std::string print_type() { return "Return"; }
+
+  ~Return() {
+    delete keyword;
+    delete value;
+  }
+};

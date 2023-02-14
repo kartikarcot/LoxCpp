@@ -16,3 +16,4 @@ Var        => Token* name, Expr* initializer
 If         => Expr* condition, Stmt* thenBranch, Stmt* elseBranch
 While      => Expr* condition, Stmt* body
 Function   => Token* name, std::vector<Token*> params, std::vector<Stmt*> body
+Return     => Token* keyword, Expr* value

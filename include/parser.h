@@ -41,6 +41,7 @@ public:
   Stmt *parse_expression_statement();
   Stmt *parse_for();
   Stmt *parse_function();
+  Stmt *parse_return();
   Expr *finish_call(Expr *expr);
   bool parse_block(std::vector<Stmt *> &statements);
 };
