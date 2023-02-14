@@ -1,6 +1,7 @@
 #include "eval.h"
 #include "loxfun.h"
 #include "object.h"
+#include "printer.h"
 #include "spdlog/spdlog.h"
 #include "token.h"
 #include "utils.h"
@@ -443,6 +444,8 @@ Object Evaluator::visit_logical(Logical *l) {
 }
 
 Object Evaluator::visit(Expr *e) {
+  PrettyPrinter p;
+  spdlog::debug("Visiting Expression: {}", p.paranthesize(e));
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
   if (b != nullptr) {
@@ -473,10 +476,16 @@ Object Evaluator::visit(Expr *e) {
   if (a != nullptr) {
     return visit_assign(a);
   }
+
   Logical *lo = nullptr;
   lo = dynamic_cast<Logical *>(e);
   if (lo != nullptr) {
     return visit_logical(lo);
+  }
+  Call *c = nullptr;
+  c = dynamic_cast<Call *>(e);
+  if (c != nullptr) {
+    return visit_call(c);
   }
   spdlog::error("Could not evaluate the expression! No rules matched! Report "
                 "this error to askarthikkumar@gmail.com");
@@ -512,7 +521,7 @@ void Evaluator::visit(Stmt *s) {
   e = dynamic_cast<Expression *>(s);
   if (e != nullptr) {
     // do something
-    spdlog::debug("In expression eval");
+    PrettyPrinter p;
     visit(e->expression);
     return;
   }
@@ -527,29 +536,31 @@ void Evaluator::visit(Stmt *s) {
   Block *b = nullptr;
   b = dynamic_cast<Block *>(s);
   if (b != nullptr) {
-    spdlog::debug("In block eval");
     visit_block(b);
     return;
   }
   If *i = nullptr;
   i = dynamic_cast<If *>(s);
   if (i != nullptr) {
-    spdlog::debug("In if block eval");
     visit_if(i);
     return;
   }
   While *w = nullptr;
   w = dynamic_cast<While *>(s);
   if (w != nullptr) {
-    spdlog::debug("In while block eval");
     visit_while(w);
     return;
   }
   Function *f = nullptr;
   f = dynamic_cast<Function *>(s);
   if (f != nullptr) {
-    spdlog::debug("In function block eval");
     visit_function(f);
+    return;
+  }
+  Return *r = nullptr;
+  r = dynamic_cast<Return *>(s);
+  if (r != nullptr) {
+    visit_return(r);
     return;
   }
   // if we reached here then print an error
@@ -620,17 +631,22 @@ Object Evaluator::visit_call(Call *c) {
            "", c->paren->line_no);
     return Object();
   }
+  spdlog::debug("Calling the function");
   return func->call(args, this);
 }
 
 void Evaluator::execute_block(std::vector<Stmt *> statements,
                               Environment *env) {
   Environment old_env = this->env;
-  {
+  try {
     this->env = Environment(env);
     for (Stmt *s : statements) {
       visit(s);
     }
+  } catch (Object &o) {
+    spdlog::debug("Caught the return object {}", Object::object_to_str(o));
+    this->env = old_env;
+    throw o;
   }
   this->env = old_env;
 }
@@ -639,4 +655,12 @@ void Evaluator::visit_function(Function *f) {
   auto func = new LoxFunction(f);
   env.define(f->name->literal_string, Object(FUNCTION, func));
   return;
+}
+
+void Evaluator::visit_return(Return *r) {
+  Object value;
+  if (r->value != nullptr) {
+    value = visit(r->value);
+  }
+  throw value;
 }

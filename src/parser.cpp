@@ -1,5 +1,6 @@
 #include "parser.h"
 #include "ast.h"
+#include "printer.h"
 #include "spdlog/spdlog.h"
 #include "token.h"
 
@@ -118,14 +119,12 @@ Expr *Parser::assignment() {
 }
 
 Expr *Parser::expression() {
-  spdlog::debug("Parsing expression");
   Expr *e = assignment();
   Token t;
   return e;
 }
 
 Expr *Parser::equality() {
-  spdlog::debug("Parsing equality");
   Expr *expr;
   expr = comparison();
   if (expr == nullptr) {
@@ -152,7 +151,6 @@ Expr *Parser::equality() {
 }
 
 Expr *Parser::comparison() {
-  spdlog::debug("Parsing comparison");
   Expr *expr;
   expr = term();
   if (expr == NULL) {
@@ -180,7 +178,6 @@ Expr *Parser::comparison() {
 }
 
 Expr *Parser::term() {
-  spdlog::debug("Parsing term");
   Expr *expr;
   expr = factor();
   if (expr == nullptr) {
@@ -208,7 +205,6 @@ Expr *Parser::term() {
 }
 
 Expr *Parser::factor() {
-  spdlog::debug("Parsing factor");
   Expr *expr;
   expr = unary();
   if (expr == nullptr) {
@@ -236,7 +232,6 @@ Expr *Parser::factor() {
 }
 
 Expr *Parser::unary() {
-  spdlog::debug("Parsing unary");
   if (match({BANG, MINUS})) {
     Token op;
     if (!previous(op)) {
@@ -308,7 +303,6 @@ Expr *Parser::call() {
 }
 
 Expr *Parser::primary() {
-  spdlog::debug("Parsing primary");
   if (match({LEFT_PAREN})) {
     // if a grouped then start from the top
     Expr *expr = assignment();
@@ -318,7 +312,6 @@ Expr *Parser::primary() {
     }
     Token t;
     peek(t);
-    spdlog::debug("Next token is {}", token_type_to_str(t.token_type_).c_str());
     expr->line_no = get_current_line();
     return expr;
   } else if (match({IDENTIFIER})) {
@@ -326,8 +319,6 @@ Expr *Parser::primary() {
     Expr *expr = new Variable();
     static_cast<Variable *>(expr)->name = new Token();
     previous(*static_cast<Variable *>(expr)->name);
-    spdlog::debug("Parsing identifier {}",
-                  static_cast<Variable *>(expr)->name->literal_string.c_str());
     expr->line_no = get_current_line();
     return expr;
   } else {
@@ -343,7 +334,6 @@ Expr *Parser::primary() {
     }
     Expr *expr = new Literal();
     static_cast<Literal *>(expr)->value = new Token(t);
-    spdlog::debug("Parsing literal {}", t.literal_string.c_str());
     expr->line_no = get_current_line();
     advance(t);
     return expr;
@@ -627,9 +617,7 @@ Stmt *Parser::parse_declaration() {
 bool Parser::parse_block(std::vector<Stmt *> &statements) {
   Token t;
   // we have tokens to parse and it's not a right paren
-  spdlog::debug("Entered parsing block");
   while (!is_at_end() && peek(t) && t.token_type_ != RIGHT_BRACE) {
-    spdlog::debug("Parsing statement for block");
     auto expr = parse_declaration();
     if (!expr) {
       return false;
@@ -814,6 +802,8 @@ Stmt *Parser::parse_return() {
   Expr *expr = nullptr;
   if (!match({SEMICOLON})) {
     expr = expression();
+    PrettyPrinter p;
+    spdlog::debug("{}", p.paranthesize(expr).c_str());
   }
   if (!match({SEMICOLON})) {
     report("Expect ';' after return value.", "", get_current_line());

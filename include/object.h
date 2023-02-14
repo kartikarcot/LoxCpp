@@ -114,6 +114,8 @@ struct Object {
         return "true";
       else
         return "false";
+    case FUNCTION:
+      return "FUNCTION";
     default:
       return "UNDEFINED";
     }

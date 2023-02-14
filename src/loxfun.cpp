@@ -11,7 +11,13 @@ Object LoxFunction::call(std::vector<Object> args, Evaluator *eval) {
   for (size_t i = 0; i < f->params.size(); i++) {
     local->define(f->params[i]->literal_string, args[i]);
   }
-  eval->execute_block(f->body, local);
+  try {
+    eval->execute_block(f->body, local);
+  } catch (Object ret) {
+    spdlog::debug("Returning from function with value {}",
+                  Object::object_to_str(ret));
+    return ret;
+  }
   // TODO: What about different return types
   return Object();
 }

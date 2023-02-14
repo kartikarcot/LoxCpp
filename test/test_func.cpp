@@ -36,12 +36,13 @@ TEST(FunctionTest, ParseSimpleFunction) {
 }
 
 // A test to parse and check if a function enters the environment
-TEST(FunctionTest, ParseFunctionAndCall) {
+TEST(FunctionTest, EvalFunctionDeclaration) {
   std::string test_code = R"(
                             fun sum(a, b) {
-                                a + b;
+                                return a + b;
                             }
                             var a = 9.0;
+                            a = sum(1.0, 2.0);
                             )";
   Scanner scanner;
   scanner.init(test_code);
@@ -58,9 +59,12 @@ TEST(FunctionTest, ParseFunctionAndCall) {
   ASSERT_TRUE(eval.env.get("sum")->type == ObjectType::FUNCTION);
   auto lf_ptr = (LoxFunction *)(eval.env.get("sum")->val);
   ASSERT_TRUE(lf_ptr->arity() == 2);
+  // Assert the value of a
+  ASSERT_TRUE(eval.env.get("a")->type == ObjectType::FLOAT);
+  ASSERT_TRUE(eval.env.get("a")->val != nullptr);
+  spdlog::debug("a: {}", *(float *)(eval.env.get("a")->val));
+  ASSERT_TRUE(*(float *)(eval.env.get("a")->val) == 3.0);
 }
-// A test to parse function declaration and function call
-// and check if the function call returns the correct value
 
 int main(int argc, char **argv) {
   spdlog::cfg::load_env_levels();

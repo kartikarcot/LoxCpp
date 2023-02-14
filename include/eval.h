@@ -24,5 +24,6 @@ public:
   Object visit(Expr *e);
   void visit(Stmt *s);
   void visit_function(Function *f);
+  void visit_return(Return *r);
   void execute_block(std::vector<Stmt *> stmts, Environment *env);
 };
