@@ -47,7 +47,7 @@ const static std::vector<std::pair<TokenType, std::regex>> token_to_regex = {
 
     // literals
     {IDENTIFIER, std::regex("[_a-zA-Z][_a-zA-Z0-9]*")},
-    {STRING, std::regex("\"[^\"]*\"")},
+    {STRING, std::regex("\".*\"")},
     {NUMBER, std::regex("[0-9]+(\\.[0-9]+)*")},
 
 };
@@ -58,6 +58,9 @@ void static set_value(Token &token) {
   if (token.token_type_ == NUMBER) {
     token.literal = new float(atof(token.literal_string.c_str()));
   } else if (token.token_type_ == STRING) {
+    // strip the quotes
+    token.literal_string =
+        token.literal_string.substr(1, token.literal_string.size() - 2);
     token.literal = (void *)token.literal_string.c_str();
   } else if (token.token_type_ == FALSE) {
     token.literal = new bool(false);
