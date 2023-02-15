@@ -125,10 +125,10 @@ public:
 
 class Print : public Stmt {
 public:
-  Expr *expression;
+  std::vector<Expr *> expressions;
   virtual std::string print_type() { return "Print"; }
 
-  ~Print() { delete expression; }
+  ~Print() {}
 };
 
 class Var : public Stmt {

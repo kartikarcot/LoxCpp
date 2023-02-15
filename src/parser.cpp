@@ -432,9 +432,29 @@ Stmt *Parser::parse_statement() {
   switch (t.token_type_) {
   case PRINT: {
     match({PRINT});
-    Expr *expr = expression();
-    if (!expr) {
+    // match a left paren
+    if (!match({LEFT_PAREN})) {
+      report("Expected (", "", get_current_line());
       return nullptr;
+    }
+    std::vector<Expr *> expressions;
+    // read a list of comma seperated expressions
+    while (!match({RIGHT_PAREN})) {
+      // read a single expression
+      Expr *expr = expression();
+      if (!expr) {
+        return nullptr;
+      }
+      expressions.push_back(expr);
+      // if we don't find a comma and peek doesn't return a right paren
+      // then we have a syntax error
+      if (!match({COMMA})) {
+        if (match({RIGHT_PAREN})) {
+          break;
+        }
+        report("Expected , or )", "", get_current_line());
+        return nullptr;
+      }
     }
     if (!match({SEMICOLON})) {
       report("Missing semicolon at the end of the statement", "",
@@ -442,7 +462,7 @@ Stmt *Parser::parse_statement() {
       return nullptr;
     }
     Print *p = new Print();
-    p->expression = expr;
+    p->expressions = expressions;
     p->line_no = t.line_no;
     return p;
     break;

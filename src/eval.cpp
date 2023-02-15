@@ -513,9 +513,14 @@ void Evaluator::visit(Stmt *s) {
   Print *p = nullptr;
   p = dynamic_cast<Print *>(s);
   if (p != nullptr) {
+    // construct a string of all the results of the expressions
+    std::string result;
+    for (Expr *e : p->expressions) {
+      result += Object::object_to_str(visit(e));
+      result += " ";
+    }
     // do something
-    auto value = visit(p->expression);
-    printf("%s\n", Object::object_to_str(value).c_str());
+    printf("%s\n", result.c_str());
     return;
   }
   Expression *e = nullptr;

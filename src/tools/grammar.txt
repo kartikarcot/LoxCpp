@@ -11,7 +11,7 @@ Variable => Token* name
 Basename Stmt
 Block      => std::vector<Stmt*> statements
 Expression => Expr* expression
-Print      => Expr* expression
+Print      => std::vector<Expr*> expressions
 Var        => Token* name, Expr* initializer
 If         => Expr* condition, Stmt* thenBranch, Stmt* elseBranch
 While      => Expr* condition, Stmt* body

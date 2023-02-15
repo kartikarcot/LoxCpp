@@ -33,8 +33,10 @@ TEST(ParserTest, test_parser_3) {
   // clang-format off
   std::vector<Token> tokens = {
       Token(PRINT, "", nullptr, 0),
+      Token(LEFT_PAREN, "(" , nullptr, 0),
       Token(BANG, "!", nullptr, 0),
       Token(TRUE, "true", new bool(true), 0),
+      Token(RIGHT_PAREN, ")" , nullptr, 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };
@@ -50,12 +52,16 @@ TEST(ParserTest, test_parser_4) {
   // clang-format off
   std::vector<Token> tokens = {
       Token(PRINT, "", nullptr, 0),
+      Token(LEFT_PAREN, "(" , nullptr, 0),
       Token(BANG, "!", nullptr, 0),
       Token(TRUE, "true", new bool(true), 0),
+      Token(RIGHT_PAREN, ")" , nullptr, 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(PRINT, "", nullptr, 0),
+      Token(LEFT_PAREN, "(" , nullptr, 0),
       Token(BANG, "!", nullptr, 0),
       Token(TRUE, "true", new bool(true), 0),
+      Token(RIGHT_PAREN, ")" , nullptr, 0),
       Token(SEMICOLON, ";", nullptr, 0),
       Token(END_OF_FILE, "", nullptr, 0)
   };

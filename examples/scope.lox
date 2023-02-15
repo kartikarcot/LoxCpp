@@ -2,16 +2,16 @@
 var hello_world="Hello World!";
 {
     var hello_scoped_world="Hello Scoped World!";
-    print hello_scoped_world;
+    print(hello_scoped_world);
 }
-print hello_world;
+print(hello_world);
 
 var PI=3.14159;
 var radius=10;
 var area=PI*radius*radius;
-print area;
+print(area);
 {
     var radius=5;
     var area=PI*radius*radius;
-    print area;
+    print(area);
 }

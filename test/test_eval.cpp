@@ -351,7 +351,7 @@ TEST(EvalTest, stmt_eval_test_19) {
     expr->op = new Token(GREATER_EQUAL, ">=", nullptr, 0);
     expr->right = l1;
     expr->left = l2;
-    p->expression = expr;
+    p->expressions = {expr};
   }
   std::vector<Stmt *> stmts = {e1, e2, p};
   Evaluator eval;
