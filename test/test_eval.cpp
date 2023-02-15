@@ -367,7 +367,7 @@ TEST(EvalTest, stmt_eval_test_20) {
                             })";
   Lox lox;
   lox.run(test_code);
-  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(Object::object_to_str(*o), "false");
 }
@@ -381,7 +381,7 @@ TEST(EvalTest, stmt_eval_test_21) {
                             })";
   Lox lox;
   lox.run(test_code);
-  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(Object::object_to_str(*o), "true");
 }
@@ -395,7 +395,7 @@ TEST(EvalTest, stmt_eval_test_22) {
                             })";
   Lox lox;
   lox.run(test_code);
-  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(Object::object_to_str(*o), "true");
 }
@@ -409,7 +409,7 @@ TEST(EvalTest, stmt_eval_test_23) {
                             })";
   Lox lox;
   lox.run(test_code);
-  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(Object::object_to_str(*o), "false");
 }
@@ -422,7 +422,7 @@ TEST(EvalTest, stmt_eval_test_24) {
                             })";
   Lox lox;
   lox.run(test_code);
-  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(*(float *)o->val, 10.0);
 }
@@ -435,7 +435,7 @@ TEST(EvalTest, stmt_eval_test_25) {
                             })";
   Lox lox;
   lox.run(test_code);
-  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(*(float *)o->val, 0.0);
 }
@@ -448,7 +448,7 @@ TEST(EvalTest, stmt_eval_test_26) {
                             })";
   Lox lox;
   lox.run(test_code);
-  Object *o = lox.eval_.env.get(Token(STRING, "a", nullptr, 0));
+  Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(*(float *)o->val, 11.0);
 }

@@ -27,10 +27,12 @@ public:
 };
 
 Evaluator::Evaluator() {
-  globals = Environment();
-  globals.define("clock", Object(FUNCTION, new Clock()));
+  globals = new Environment();
+  globals->define("clock", Object(FUNCTION, new Clock()));
   env = globals;
 }
+
+Evaluator::~Evaluator() { delete globals; }
 
 // TODO(kartikarcot): take ownwership of these statements
 // and release them appropriately
@@ -112,7 +114,6 @@ static inline Object handle_minus(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
-  spdlog::info("The value is {0}", value1 - value2);
   return {FLOAT, new float(value1 - value2)};
 }
 
@@ -250,7 +251,7 @@ static inline Object handle_less_equal(const Object &left_val,
   bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
   bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
   if (is_right_num && is_left_num) {
-    return {BOOL, new bool(get_value(left_val) < get_value(right_val))};
+    return {BOOL, new bool(get_value(left_val) <= get_value(right_val))};
   } else {
     // comparing undefineds and strings are not allowed
     return Object();
@@ -389,7 +390,7 @@ Object Evaluator::visit_binary(Binary *b) {
 }
 
 Object Evaluator::visit_variable(Variable *v) {
-  Object *obj_ptr = env.get(*v->name);
+  Object *obj_ptr = env->get(*v->name);
   if (obj_ptr != nullptr) {
     return *obj_ptr;
   }
@@ -403,7 +404,7 @@ Object Evaluator::visit_assign(Assign *a) {
   if (obj.type == UNDEFINED) {
     return obj;
   }
-  bool ret = env.assign(a->name->literal_string, obj);
+  bool ret = env->assign(a->name->literal_string, obj);
   if (!ret) {
     report("Variable " + a->name->literal_string + " is not defined", "",
            a->name->line_no);
@@ -496,9 +497,9 @@ Object Evaluator::visit(Expr *e) {
 
 void Evaluator::visit_block(Block *b) {
   assert(b != nullptr);
-  Environment old_env = env;
+  Environment *old_env = env;
   {
-    this->env = Environment(&old_env);
+    this->env = new Environment(old_env);
     for (Stmt *st : b->statements) {
       spdlog::debug("Evaluating stmt in block");
       assert(st != nullptr);
@@ -530,7 +531,7 @@ void Evaluator::visit(Stmt *s) {
   if (v != nullptr) {
     // do something
     const Object &value = visit(v->initializer);
-    env.define(v->name->literal_string, std::move(value));
+    env->define(v->name->literal_string, std::move(value));
     return;
   }
   Block *b = nullptr;
@@ -637,9 +638,9 @@ Object Evaluator::visit_call(Call *c) {
 
 void Evaluator::execute_block(std::vector<Stmt *> statements,
                               Environment *env) {
-  Environment old_env = this->env;
+  Environment *old_env = this->env;
   try {
-    this->env = Environment(env);
+    this->env = new Environment(env);
     for (Stmt *s : statements) {
       visit(s);
     }
@@ -653,7 +654,7 @@ void Evaluator::execute_block(std::vector<Stmt *> statements,
 
 void Evaluator::visit_function(Function *f) {
   auto func = new LoxFunction(f);
-  env.define(f->name->literal_string, Object(FUNCTION, func));
+  env->define(f->name->literal_string, Object(FUNCTION, func));
   return;
 }
 

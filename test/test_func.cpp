@@ -52,18 +52,50 @@ TEST(FunctionTest, EvalFunctionDeclaration) {
   std::vector<Stmt *> stmts = parser.parse_stmts();
   Evaluator eval;
   eval.eval(stmts);
-  ASSERT_TRUE(eval.env.get("sum") != nullptr);
-  ASSERT_TRUE(eval.env.get("a") != nullptr);
+  ASSERT_TRUE(eval.env->get("sum") != nullptr);
+  ASSERT_TRUE(eval.env->get("a") != nullptr);
   // assert that the object val pointer is a LoxFunction ptr
-  ASSERT_TRUE(eval.env.get("sum")->val != nullptr);
-  ASSERT_TRUE(eval.env.get("sum")->type == ObjectType::FUNCTION);
-  auto lf_ptr = (LoxFunction *)(eval.env.get("sum")->val);
+  ASSERT_TRUE(eval.env->get("sum")->val != nullptr);
+  ASSERT_TRUE(eval.env->get("sum")->type == ObjectType::FUNCTION);
+  auto lf_ptr = (LoxFunction *)(eval.env->get("sum")->val);
   ASSERT_TRUE(lf_ptr->arity() == 2);
   // Assert the value of a
-  ASSERT_TRUE(eval.env.get("a")->type == ObjectType::FLOAT);
-  ASSERT_TRUE(eval.env.get("a")->val != nullptr);
-  spdlog::debug("a: {}", *(float *)(eval.env.get("a")->val));
-  ASSERT_TRUE(*(float *)(eval.env.get("a")->val) == 3.0);
+  ASSERT_TRUE(eval.env->get("a")->type == ObjectType::FLOAT);
+  ASSERT_TRUE(eval.env->get("a")->val != nullptr);
+  ASSERT_TRUE(*(float *)(eval.env->get("a")->val) == 3.0);
+}
+
+// Test a fibonacci function
+TEST(FunctionTest, FibonacciFunction) {
+  std::string test_code = R"(
+                            fun fib(n) {
+                                if (n <= 1) {
+                                    return 1;
+                                }
+                                return fib(n - 1) + fib(n - 2);
+                            }
+                            var a = fib(6);
+                            )";
+  Scanner scanner;
+  scanner.init(test_code);
+  scanner.scan();
+  Parser parser;
+  parser.init(scanner.get_tokens());
+  std::vector<Stmt *> stmts = parser.parse_stmts();
+  Evaluator eval;
+  eval.eval(stmts);
+  ASSERT_TRUE(eval.env->get("fib") != nullptr);
+  ASSERT_TRUE(eval.env->get("a") != nullptr);
+  // assert that the object val pointer is a LoxFunction ptr
+  ASSERT_TRUE(eval.env->get("fib")->val != nullptr);
+  ASSERT_TRUE(eval.env->get("fib")->type == ObjectType::FUNCTION);
+  auto lf_ptr = (LoxFunction *)(eval.env->get("fib")->val);
+  ASSERT_TRUE(lf_ptr->arity() == 1);
+  // Assert the value of a
+  ASSERT_TRUE(eval.env->get("a")->type == ObjectType::FLOAT);
+  ASSERT_TRUE(eval.env->get("a")->val != nullptr);
+  spdlog::debug("a: {}", *(float *)(eval.env->get("a")->val));
+  ASSERT_TRUE(*(float *)(eval.env->get("a")->val) == 13.0);
 }
 
 int main(int argc, char **argv) {

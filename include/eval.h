@@ -6,8 +6,8 @@
 class Evaluator {
 public:
   Evaluator();
-  Environment globals;
-  Environment env;
+  Environment *globals;
+  Environment *env;
   Object visit_unary(Unary *u);
   Object visit_binary(Binary *b);
   Object visit_literal(Literal *l);
@@ -26,4 +26,5 @@ public:
   void visit_function(Function *f);
   void visit_return(Return *r);
   void execute_block(std::vector<Stmt *> stmts, Environment *env);
+  ~Evaluator();
 };
