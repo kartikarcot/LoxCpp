@@ -1,5 +1,4 @@
 #include "env.h"
-#include "spdlog/spdlog.h"
 #include "utils.h"
 
 Environment::~Environment() {

@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "spdlog/spdlog.h"
+#include "logger.h"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -20,7 +20,8 @@ std::string read_file_into_string(const std::string &file_path) {
 }
 
 void report(const std::string &message, const std::string &where, int line_no) {
-  spdlog::error("[line: {0}] Error {1}: {2}", line_no, where, message);
+  CLog::FLog(LogLevel::ERROR, LogCategory::ALL, "[line: %d] Error %s: %s",
+             line_no, where.c_str(), message.c_str());
 }
 
 void error(const std::string &message, int line_no) {

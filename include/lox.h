@@ -2,7 +2,6 @@
 #include "eval.h"
 #include "parser.h"
 #include "scanner.h"
-#include "spdlog/spdlog.h"
 #include <string>
 
 class Lox {

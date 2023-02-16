@@ -2,6 +2,7 @@
 #include "ast.h"
 #include "env.h"
 #include "eval.h"
+#include "logger.h"
 
 LoxFunction::LoxFunction(Function *f, const Environment &closure) {
   this->f = f;
@@ -17,8 +18,9 @@ Object LoxFunction::call(std::vector<Object> args, Evaluator *eval) {
   try {
     eval->execute_block(f->body, local);
   } catch (Object ret) {
-    spdlog::debug("Returning from function with value {}",
-                  Object::object_to_str(ret));
+    CLog::FLog(LogLevel::DEBUG, LogCategory::FUN,
+               "Returning from function with value %s",
+               Object::object_to_str(ret).c_str());
     return ret;
   }
   // TODO: What about different return types

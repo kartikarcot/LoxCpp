@@ -6,8 +6,6 @@
 #include "eval.h"
 #include "lox.h"
 #include "loxfun.h"
-#include "spdlog/cfg/env.h"
-#include "spdlog/spdlog.h"
 #include "gtest/gtest.h"
 
 TEST(FunctionTest, ParseSimpleFunction) {
@@ -94,7 +92,6 @@ TEST(FunctionTest, FibonacciFunction) {
   // Assert the value of a
   ASSERT_TRUE(eval.env->get("a")->type == ObjectType::FLOAT);
   ASSERT_TRUE(eval.env->get("a")->val != nullptr);
-  spdlog::debug("a: {}", *(float *)(eval.env->get("a")->val));
   ASSERT_TRUE(*(float *)(eval.env->get("a")->val) == 13.0);
 }
 
@@ -135,8 +132,6 @@ TEST(FunctionTest, ClosureFunctionTest) {
 }
 
 int main(int argc, char **argv) {
-  spdlog::cfg::load_env_levels();
-  spdlog::set_pattern("%^[%l]%$ %v");
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }

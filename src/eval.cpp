@@ -1,11 +1,14 @@
 #include "eval.h"
+#include "logger.h"
 #include "loxfun.h"
 #include "object.h"
 #include "printer.h"
-#include "spdlog/spdlog.h"
 #include "token.h"
 #include "utils.h"
+#include <cassert>
+#include <chrono>
 #include <cstddef>
+#include <math.h>
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
 
@@ -39,8 +42,9 @@ Evaluator::~Evaluator() { delete globals; }
 void Evaluator::eval(std::vector<Stmt *> stmts) {
   for (const auto &stmt : stmts) {
     if (stmt == nullptr) {
-      spdlog::error("Evaluator encountered a nullptr for a statement. Report "
-                    "this to askarthikkumar@gmail.com");
+      CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+                 "Evaluator encountered a nullptr for a statement. Report this "
+                 "to askarthikkumar@gmail.com");
       exit(-1);
     }
     stmt->accept<void, Evaluator *>(this);
@@ -446,7 +450,8 @@ Object Evaluator::visit_logical(Logical *l) {
 
 Object Evaluator::visit(Expr *e) {
   PrettyPrinter p;
-  spdlog::debug("Visiting Expression: {}", p.paranthesize(e));
+  CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL, "Visiting Expression: %s",
+             p.paranthesize(e).c_str());
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
   if (b != nullptr) {
@@ -488,8 +493,11 @@ Object Evaluator::visit(Expr *e) {
   if (c != nullptr) {
     return visit_call(c);
   }
-  spdlog::error("Could not evaluate the expression! No rules matched! Report "
-                "this error to askarthikkumar@gmail.com");
+  CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+             "Could not evaluate the "
+             "expression! No rules "
+             "matched! Report this error "
+             "to askarthikkumar@gmail.com");
 
   // Nothing matched we are returning
   return Object();
@@ -501,7 +509,6 @@ void Evaluator::visit_block(Block *b) {
   {
     this->env = new Environment(old_env);
     for (Stmt *st : b->statements) {
-      spdlog::debug("Evaluating stmt in block");
       assert(st != nullptr);
       visit(st);
     }
@@ -570,8 +577,11 @@ void Evaluator::visit(Stmt *s) {
     return;
   }
   // if we reached here then print an error
-  spdlog::error("Could not evaluate the statement! No rules matched! Report "
-                "this error to askarthikkumar@gmail.com");
+  CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+             "Could not evaluate the "
+             "statement! No rules "
+             "matched! Report this error "
+             "to askarthikkumar@gmail.com");
 }
 
 void Evaluator::visit_if(If *i) {
@@ -582,10 +592,8 @@ void Evaluator::visit_if(If *i) {
     return;
   }
   if (is_truthy(o)) {
-    spdlog::debug("In the if branch");
     visit(i->thenBranch);
   } else if (i->elseBranch != nullptr) {
-    spdlog::debug("In the else branch");
     visit(i->elseBranch);
   }
 }
@@ -637,7 +645,6 @@ Object Evaluator::visit_call(Call *c) {
            "", c->paren->line_no);
     return Object();
   }
-  spdlog::debug("Calling the function");
   return func->call(args, this);
 }
 
@@ -650,7 +657,8 @@ void Evaluator::execute_block(std::vector<Stmt *> statements,
       visit(s);
     }
   } catch (Object &o) {
-    spdlog::debug("Caught the return object {}", Object::object_to_str(o));
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "Caught the return object %s", Object::object_to_str(o).c_str());
     this->env = old_env;
     throw o;
   }

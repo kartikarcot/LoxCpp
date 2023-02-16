@@ -1,5 +1,5 @@
 #include "scanner.h"
-#include "spdlog/spdlog.h"
+#include "logger.h"
 #include "utils.h"
 #include <regex>
 
@@ -97,9 +97,9 @@ bool Scanner::parse_token(size_t &idx) {
     }
   }
   if (found) {
-    spdlog::debug("Token Found {0} : {1}",
-                  token_type_to_str(longest_match.first),
-                  std::string(source_, idx, longest_match.second).c_str());
+    CLog::Log(LogLevel::DEBUG, LogCategory::SCANNER, "Token Found ",
+              token_type_to_str(longest_match.first), " : ",
+              std::string(source_, idx, longest_match.second).c_str());
     // add only non-comment tokens
     if (longest_match.first != TokenType::SLASH_SLASH) {
       auto &token = tokens_.emplace_back();
