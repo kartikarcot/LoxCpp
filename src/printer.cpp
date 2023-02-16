@@ -9,7 +9,6 @@ std::string PrettyPrinter::paranthesize(Expr *e) {
 std::string PrettyPrinter::visit(Expr *e) {
   std::stringstream ss;
   Binary *b = nullptr;
-  // spdlog::info("The type is {0}", ((Binary*)e)->op->literal_string.c_str());
   b = dynamic_cast<Binary *>(e);
   if (b != nullptr) {
     ss << "(";

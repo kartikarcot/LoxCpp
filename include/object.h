@@ -1,7 +1,6 @@
 #pragma once
 #include "parser.h"
 #include <cstring>
-#include <spdlog/spdlog.h>
 #include <string>
 #include <vector>
 

@@ -1,7 +1,7 @@
 #include "parser.h"
 #include "ast.h"
+#include "logger.h"
 #include "printer.h"
-#include "spdlog/spdlog.h"
 #include "token.h"
 
 /*
@@ -475,10 +475,8 @@ Stmt *Parser::parse_statement() {
     if (!parse_block(stmts)) {
       return nullptr;
     }
-    spdlog::debug("There are {} statements in the block", stmts.size());
     Block *b = new Block();
     b->statements = std::move(stmts);
-    spdlog::debug("There are {} statements in the block", b->statements.size());
     b->line_no = t.line_no;
     return b;
     break;
@@ -549,7 +547,6 @@ Stmt *Parser::parse_function() {
   if (peek(t) && t.token_type_ == IDENTIFIER) {
     advance(t);
   } else {
-    spdlog::info("The token type is {}", t.token_type_);
     report("Missing/Invalid identifier in function declaration statement", "",
            get_current_line());
     return nullptr;
@@ -811,7 +808,6 @@ Stmt *Parser::parse_expression_statement() {
            get_current_line());
     return nullptr;
   }
-  spdlog::debug("Parsed expression statement");
   ex->expression = expr;
   return ex;
 }
@@ -823,7 +819,8 @@ Stmt *Parser::parse_return() {
   if (!match({SEMICOLON})) {
     expr = expression();
     PrettyPrinter p;
-    spdlog::debug("{}", p.paranthesize(expr).c_str());
+    CLog::FLog(LogLevel::DEBUG, LogCategory::PARSER, "%s",
+               p.paranthesize(expr).c_str());
   }
   if (!match({SEMICOLON})) {
     report("Expect ';' after return value.", "", get_current_line());

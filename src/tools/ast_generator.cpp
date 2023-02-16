@@ -1,4 +1,4 @@
-#include "spdlog/spdlog.h"
+#include "logger.h"
 #include "stringbuffer.h"
 #include "utils.h"
 #include <filesystem>
@@ -113,7 +113,8 @@ bool generate_code(std::ofstream &ofs, const std::string file_contents) {
   std::string code;
   generate_preamble(code);
   if (!write_code(ofs, code)) {
-    spdlog::error("Could not write contents to output file");
+    CLog::FLog(LogLevel::ERROR, LogCategory::ALL,
+               "Could not write contents to output file");
     return false;
   }
   while (true) {
@@ -121,7 +122,8 @@ bool generate_code(std::ofstream &ofs, const std::string file_contents) {
       break;
     }
     if (rule.find("Basename") == std::string::npos) {
-      spdlog::error("Could not find the Basename");
+      CLog::FLog(LogLevel::ERROR, LogCategory::ALL,
+                 "Could not find the Basename");
       return false;
     }
     auto basename_split = split(rule, " ");
@@ -130,7 +132,8 @@ bool generate_code(std::ofstream &ofs, const std::string file_contents) {
     trim(basename);
     generate_base_ast(code, basename);
     if (!write_code(ofs, code)) {
-      spdlog::error("Could not write contents to output file");
+      CLog::FLog(LogLevel::ERROR, LogCategory::ALL,
+                 "Could not write contents to output file");
       return false;
     }
     while (getline(input_stringstream, rule)) {
@@ -139,7 +142,8 @@ bool generate_code(std::ofstream &ofs, const std::string file_contents) {
       }
       generate_ast(rule, basename, code);
       if (!write_code(ofs, code)) {
-        spdlog::error("Could not write contents to output file");
+        CLog::FLog(LogLevel::ERROR, LogCategory::ALL,
+                   "Could not write contents to output file");
         return false;
       }
     }
@@ -149,20 +153,23 @@ bool generate_code(std::ofstream &ofs, const std::string file_contents) {
 
 int main(int argc, char **argv) {
   if (argc != 3) {
-    spdlog::info("The correct usage is ast_generator grammer_file_path "
-                 "output_file_path");
+    CLog::FLog(LogLevel::INFO, LogCategory::ALL,
+               "The correct usage is ast_generator grammer_file_path "
+               "output_file_path");
     return -1;
   }
   std::string file_path = std::string(argv[1]);
   if (!fs::exists(file_path)) {
-    spdlog::error("No file called {0} exists", file_path);
+    CLog::FLog(LogLevel::ERROR, LogCategory::ALL, "No file called %s exists",
+               file_path.c_str());
     return -1;
   }
   std::string output_file_path = std::string(argv[2]);
   std::ofstream ofs(output_file_path, std::ofstream::out);
   if (!ofs.is_open()) {
-    spdlog::error("Output file could not be created or opened: {0}",
-                  output_file_path);
+    CLog::FLog(LogLevel::ERROR, LogCategory::ALL,
+               "Output file could not be created or opened: %s",
+               output_file_path.c_str());
     return -1;
   }
   std::string file_contents = read_file_into_string(std::string(argv[1]));

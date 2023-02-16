@@ -1,7 +1,6 @@
 #include "lox.h"
+#include "logger.h"
 #include "printer.h"
-#include "spdlog/sinks/ansicolor_sink.h"
-#include "spdlog/spdlog.h"
 #include "utils.h"
 #include <iostream>
 #include <sstream>
@@ -9,13 +8,7 @@
 void Lox::run(const std::string &lox_code) {
   scanner_.init(lox_code);
   scanner_.scan();
-  spdlog::debug("Lox Code:\n{0}", lox_code);
   auto tokens = scanner_.get_tokens();
-  spdlog::debug("Scanned tokens {}", tokens.size());
-  for (auto &t : tokens) {
-    spdlog::debug("Token: {} {}", t.literal_string,
-                  token_type_to_str(t.token_type_));
-  }
   parser_.init(tokens);
   auto stmts = parser_.parse_stmts();
   eval_.eval(stmts);
