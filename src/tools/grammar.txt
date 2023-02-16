@@ -3,11 +3,17 @@ Assign   => Token* name, Expr* value
 Binary   => Expr* left, Token* op, Expr* right
 Grouping => Expr* expression
 Literal  => Token* value
+Logical  => Expr* left, Token* op, Expr* right
 Unary    => Token* op, Expr* right
+Call     => Expr* callee, Token* paren, std::vector<Expr*> arguments
 Variable => Token* name
 ---
 Basename Stmt
 Block      => std::vector<Stmt*> statements
 Expression => Expr* expression
-Print      => Expr* expression
+Print      => std::vector<Expr*> expressions
 Var        => Token* name, Expr* initializer
+If         => Expr* condition, Stmt* thenBranch, Stmt* elseBranch
+While      => Expr* condition, Stmt* body
+Function   => Token* name, std::vector<Token*> params, std::vector<Stmt*> body
+Return     => Token* keyword, Expr* value

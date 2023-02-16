@@ -12,11 +12,10 @@ target_link_libraries(test_env PRIVATE eval gtest spdlog)
 target_compile_definitions(test_env PUBLIC UNIT_TEST)
 add_test(NAME test_env COMMAND test_env)
 
-
 add_executable(test_parser test_parser.cpp)
 target_link_libraries(test_parser PRIVATE parser gtest spdlog)
 target_compile_definitions(test_parser PUBLIC UNIT_TEST)
-add_test(NAME test_parser COMMAND test_lexer)
+add_test(NAME test_parser COMMAND test_parser)
 
 add_executable(test_lexer test_lexer.cpp)
 target_link_libraries(test_lexer PRIVATE scanner gtest spdlog)
@@ -24,5 +23,11 @@ target_compile_definitions(test_lexer PUBLIC UNIT_TEST)
 add_test(NAME test_lexer COMMAND test_lexer)
 
 add_executable(test_eval test_eval.cpp)
-target_link_libraries(test_eval PRIVATE eval gtest spdlog)
+target_link_libraries(test_eval PRIVATE eval lox gtest spdlog)
+target_compile_definitions(test_eval PUBLIC UNIT_TEST)
 add_test(NAME test_eval COMMAND test_eval)
+
+add_executable(test_func test_func.cpp)
+target_link_libraries(test_func PRIVATE eval lox gtest spdlog)
+target_compile_definitions(test_func PUBLIC UNIT_TEST)
+add_test(NAME test_func COMMAND test_func)

@@ -8,6 +8,7 @@ class Scanner {
   std::vector<Token> tokens_;
   void chew_through_whitespace(size_t &idx);
   bool parse_token(size_t &idx);
+  int current_line_ = 0;
 
 public:
   void init(const std::string &source);

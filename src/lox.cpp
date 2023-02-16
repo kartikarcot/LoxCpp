@@ -12,6 +12,10 @@ void Lox::run(const std::string &lox_code) {
   spdlog::debug("Lox Code:\n{0}", lox_code);
   auto tokens = scanner_.get_tokens();
   spdlog::debug("Scanned tokens {}", tokens.size());
+  for (auto &t : tokens) {
+    spdlog::debug("Token: {} {}", t.literal_string,
+                  token_type_to_str(t.token_type_));
+  }
   parser_.init(tokens);
   auto stmts = parser_.parse_stmts();
   eval_.eval(stmts);

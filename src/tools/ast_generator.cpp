@@ -13,6 +13,7 @@ void generate_base_ast(std::string &ast_code, const std::string &class_name) {
   buffer.increase_indent();
   buffer.write_line("public:");
   buffer.increase_indent();
+  buffer.write_line("size_t line_no = 0;");
   buffer.write_line("template <typename T, typename V>");
   buffer.write_line("T accept(V v) {");
   buffer.increase_indent();

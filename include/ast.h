@@ -4,6 +4,7 @@
 
 class Expr {
 public:
+  size_t line_no = 0;
   template <typename T, typename V> T accept(V v) { return v->visit(this); }
   virtual std::string print_type() { return "Expr"; }
   virtual ~Expr() {}
@@ -51,6 +52,20 @@ public:
   ~Literal() { delete value; }
 };
 
+class Logical : public Expr {
+public:
+  Expr *left;
+  Token *op;
+  Expr *right;
+  virtual std::string print_type() { return "Logical"; }
+
+  ~Logical() {
+    delete left;
+    delete op;
+    delete right;
+  }
+};
+
 class Unary : public Expr {
 public:
   Token *op;
@@ -60,6 +75,19 @@ public:
   ~Unary() {
     delete op;
     delete right;
+  }
+};
+
+class Call : public Expr {
+public:
+  Expr *callee;
+  Token *paren;
+  std::vector<Expr *> arguments;
+  virtual std::string print_type() { return "Call"; }
+
+  ~Call() {
+    delete callee;
+    delete paren;
   }
 };
 
@@ -73,6 +101,7 @@ public:
 
 class Stmt {
 public:
+  size_t line_no = 0;
   template <typename T, typename V> T accept(V v) { return v->visit(this); }
   virtual std::string print_type() { return "Expr"; }
   virtual ~Stmt() {}
@@ -96,10 +125,10 @@ public:
 
 class Print : public Stmt {
 public:
-  Expr *expression;
+  std::vector<Expr *> expressions;
   virtual std::string print_type() { return "Print"; }
 
-  ~Print() { delete expression; }
+  ~Print() {}
 };
 
 class Var : public Stmt {
@@ -111,5 +140,53 @@ public:
   ~Var() {
     delete name;
     delete initializer;
+  }
+};
+
+class If : public Stmt {
+public:
+  Expr *condition;
+  Stmt *thenBranch;
+  Stmt *elseBranch;
+  virtual std::string print_type() { return "If"; }
+
+  ~If() {
+    delete condition;
+    delete thenBranch;
+    delete elseBranch;
+  }
+};
+
+class While : public Stmt {
+public:
+  Expr *condition;
+  Stmt *body;
+  virtual std::string print_type() { return "While"; }
+
+  ~While() {
+    delete condition;
+    delete body;
+  }
+};
+
+class Function : public Stmt {
+public:
+  Token *name;
+  std::vector<Token *> params;
+  std::vector<Stmt *> body;
+  virtual std::string print_type() { return "Function"; }
+
+  ~Function() { delete name; }
+};
+
+class Return : public Stmt {
+public:
+  Token *keyword;
+  Expr *value;
+  virtual std::string print_type() { return "Return"; }
+
+  ~Return() {
+    delete keyword;
+    delete value;
   }
 };

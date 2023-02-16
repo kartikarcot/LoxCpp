@@ -1,8 +1,12 @@
 #pragma once
+#include "parser.h"
 #include <cstring>
+#include <spdlog/spdlog.h>
 #include <string>
+#include <vector>
 
-enum ObjectType { STR, FLOAT, BOOL, UNDEFINED };
+enum ObjectType { STR, FLOAT, BOOL, FUNCTION, UNDEFINED };
+
 // A container that can hold a pointer
 // to a value and its type
 struct Object {
@@ -29,6 +33,10 @@ struct Object {
     case BOOL:
       type = o.type;
       val = new bool(*(bool *)o.val);
+      break;
+    case FUNCTION:
+      type = o.type;
+      val = o.val;
       break;
     default:
       type = UNDEFINED;
@@ -106,8 +114,19 @@ struct Object {
         return "true";
       else
         return "false";
+    case FUNCTION:
+      return "FUNCTION";
     default:
       return "UNDEFINED";
     }
   }
+};
+
+class Evaluator;
+
+class Callable {
+public:
+  virtual int arity() = 0;
+  virtual Object call(std::vector<Object> args, Evaluator *env) = 0;
+  virtual ~Callable(){};
 };

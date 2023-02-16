@@ -6,12 +6,12 @@
 #include <string>
 
 class Lox {
+public:
   bool had_error_ = false;
   Scanner scanner_;
   Parser parser_;
   Evaluator eval_;
 
-public:
   void error(const std::string &message, int line_no);
   void report(const std::string &message, const std::string &where,
               int line_no);

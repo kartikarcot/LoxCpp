@@ -1,14 +1,46 @@
 #include "eval.h"
+#include "loxfun.h"
+#include "object.h"
+#include "printer.h"
 #include "spdlog/spdlog.h"
 #include "token.h"
 #include "utils.h"
+#include <cstddef>
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
 
+// A function to get the current time
+double time_now() {
+  auto now = std::chrono::system_clock::now();
+  auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+  auto value = now_ms.time_since_epoch();
+  return value.count();
+}
+
+// A callable object that can be used to get the current time
+class Clock : public Callable {
+public:
+  Object call(std::vector<Object> args, Evaluator *) override {
+    return Object(FLOAT, new float(time_now()));
+  }
+  int arity() override { return 0; }
+};
+
+Evaluator::Evaluator() {
+  globals = new Environment();
+  globals->define("clock", Object(FUNCTION, new Clock()));
+  env = globals;
+}
+
+Evaluator::~Evaluator() { delete globals; }
+
+// TODO(kartikarcot): take ownwership of these statements
+// and release them appropriately
 void Evaluator::eval(std::vector<Stmt *> stmts) {
   for (const auto &stmt : stmts) {
     if (stmt == nullptr) {
-      spdlog::error("Evaluator encountered a nullptr for a statement");
+      spdlog::error("Evaluator encountered a nullptr for a statement. Report "
+                    "this to askarthikkumar@gmail.com");
       exit(-1);
     }
     stmt->accept<void, Evaluator *>(this);
@@ -82,7 +114,6 @@ static inline Object handle_minus(const Object &left_val,
   }
   float &value1 = *((float *)left_val.val);
   float &value2 = *((float *)right_val.val);
-  spdlog::info("The value is {0}", value1 - value2);
   return {FLOAT, new float(value1 - value2)};
 }
 
@@ -220,7 +251,7 @@ static inline Object handle_less_equal(const Object &left_val,
   bool is_left_num = left_val.type == FLOAT || left_val.type == BOOL;
   bool is_right_num = right_val.type == FLOAT || right_val.type == BOOL;
   if (is_right_num && is_left_num) {
-    return {BOOL, new bool(get_value(left_val) < get_value(right_val))};
+    return {BOOL, new bool(get_value(left_val) <= get_value(right_val))};
   } else {
     // comparing undefineds and strings are not allowed
     return Object();
@@ -239,7 +270,6 @@ Object Evaluator::visit_unary(Unary *u) {
     return {BOOL, new bool(new_value)};
   } else if (u->op->token_type_ == MINUS) {
     if (!process_minus(value)) {
-
       error("Could not process the unary operation for '-' operator",
             u->op->line_no);
       // return a nill
@@ -270,8 +300,7 @@ static bool literal_2_object(Literal *l, Object &obj) {
   case STRING: {
     obj.type = STR;
     obj.val = new char[l->value->literal_string.size() + 1];
-    snprintf((char *)obj.val, l->value->literal_string.size(), "%s",
-             l->value->literal_string.c_str());
+    strcpy((char *)obj.val, l->value->literal_string.c_str());
     return true;
   }
   case FALSE: {
@@ -361,10 +390,12 @@ Object Evaluator::visit_binary(Binary *b) {
 }
 
 Object Evaluator::visit_variable(Variable *v) {
-  Object *obj_ptr = env.get(*v->name);
+  Object *obj_ptr = env->get(*v->name);
   if (obj_ptr != nullptr) {
     return *obj_ptr;
   }
+  report("Variable " + v->name->literal_string + " is not defined", "",
+         v->name->line_no);
   return Object();
 }
 
@@ -373,14 +404,49 @@ Object Evaluator::visit_assign(Assign *a) {
   if (obj.type == UNDEFINED) {
     return obj;
   }
-  bool ret = env.assign(a->name->literal_string, obj);
+  bool ret = env->assign(a->name->literal_string, obj);
   if (!ret) {
+    report("Variable " + a->name->literal_string + " is not defined", "",
+           a->name->line_no);
     return Object();
   }
   return obj;
 }
 
+Object Evaluator::visit_logical(Logical *l) {
+  char error_str[60];
+  snprintf(error_str, 60, "Could not evaluate the logical literal: %s",
+           l->op->literal_string.c_str());
+  Object l_res = visit(l->left);
+  if (l_res.type == UNDEFINED) {
+    error(error_str, l->op->line_no);
+    return l_res;
+  }
+  bool l_truthy = is_truthy(l_res);
+  if (l_truthy && l->op->token_type_ == OR) {
+    return Object(BOOL, new bool(true));
+  }
+  if (!l_truthy && l->op->token_type_ == AND) {
+    return Object(BOOL, new bool(false));
+  }
+  Object r_res = visit(l->right);
+  if (r_res.type == UNDEFINED) {
+    error(error_str, l->op->line_no);
+    return r_res;
+  }
+  bool r_truthy = is_truthy(r_res);
+  if (r_truthy && l->op->token_type_ == OR) {
+    return Object(BOOL, new bool(true));
+  }
+  if (r_truthy && l->op->token_type_ == AND) {
+    return Object(BOOL, new bool(true));
+  }
+  return Object(BOOL, new bool(false));
+}
+
 Object Evaluator::visit(Expr *e) {
+  PrettyPrinter p;
+  spdlog::debug("Visiting Expression: {}", p.paranthesize(e));
   Binary *b = nullptr;
   b = dynamic_cast<Binary *>(e);
   if (b != nullptr) {
@@ -411,7 +477,19 @@ Object Evaluator::visit(Expr *e) {
   if (a != nullptr) {
     return visit_assign(a);
   }
-  spdlog::error("Could not evaluate the expression! No rules matched!");
+
+  Logical *lo = nullptr;
+  lo = dynamic_cast<Logical *>(e);
+  if (lo != nullptr) {
+    return visit_logical(lo);
+  }
+  Call *c = nullptr;
+  c = dynamic_cast<Call *>(e);
+  if (c != nullptr) {
+    return visit_call(c);
+  }
+  spdlog::error("Could not evaluate the expression! No rules matched! Report "
+                "this error to askarthikkumar@gmail.com");
 
   // Nothing matched we are returning
   return Object();
@@ -419,10 +497,11 @@ Object Evaluator::visit(Expr *e) {
 
 void Evaluator::visit_block(Block *b) {
   assert(b != nullptr);
-  Environment old_env = env;
+  Environment *old_env = env;
   {
-    this->env = Environment(&old_env);
+    this->env = new Environment(old_env);
     for (Stmt *st : b->statements) {
+      spdlog::debug("Evaluating stmt in block");
       assert(st != nullptr);
       visit(st);
     }
@@ -434,16 +513,21 @@ void Evaluator::visit(Stmt *s) {
   Print *p = nullptr;
   p = dynamic_cast<Print *>(s);
   if (p != nullptr) {
+    // construct a string of all the results of the expressions
+    std::string result;
+    for (Expr *e : p->expressions) {
+      result += Object::object_to_str(visit(e));
+      result += " ";
+    }
     // do something
-    auto value = visit(p->expression);
-    spdlog::info("{} {}", Object::type_to_str(value.type).c_str(),
-                 Object::object_to_str(value).c_str());
+    printf("%s\n", result.c_str());
     return;
   }
   Expression *e = nullptr;
   e = dynamic_cast<Expression *>(s);
   if (e != nullptr) {
     // do something
+    PrettyPrinter p;
     visit(e->expression);
     return;
   }
@@ -452,7 +536,7 @@ void Evaluator::visit(Stmt *s) {
   if (v != nullptr) {
     // do something
     const Object &value = visit(v->initializer);
-    env.define(v->name->literal_string, std::move(value));
+    env->define(v->name->literal_string, std::move(value));
     return;
   }
   Block *b = nullptr;
@@ -461,5 +545,129 @@ void Evaluator::visit(Stmt *s) {
     visit_block(b);
     return;
   }
-  report("Could not evaluate the statement", "", 0);
+  If *i = nullptr;
+  i = dynamic_cast<If *>(s);
+  if (i != nullptr) {
+    visit_if(i);
+    return;
+  }
+  While *w = nullptr;
+  w = dynamic_cast<While *>(s);
+  if (w != nullptr) {
+    visit_while(w);
+    return;
+  }
+  Function *f = nullptr;
+  f = dynamic_cast<Function *>(s);
+  if (f != nullptr) {
+    visit_function(f);
+    return;
+  }
+  Return *r = nullptr;
+  r = dynamic_cast<Return *>(s);
+  if (r != nullptr) {
+    visit_return(r);
+    return;
+  }
+  // if we reached here then print an error
+  spdlog::error("Could not evaluate the statement! No rules matched! Report "
+                "this error to askarthikkumar@gmail.com");
+}
+
+void Evaluator::visit_if(If *i) {
+  Object o = visit(i->condition);
+  if (o.type == UNDEFINED) {
+    report("Could not evaluate the condition for the if block", "",
+           i->condition->line_no);
+    return;
+  }
+  if (is_truthy(o)) {
+    spdlog::debug("In the if branch");
+    visit(i->thenBranch);
+  } else if (i->elseBranch != nullptr) {
+    spdlog::debug("In the else branch");
+    visit(i->elseBranch);
+  }
+}
+
+void Evaluator::visit_while(While *w) {
+  Object o = visit(w->condition);
+  if (o.type == UNDEFINED) {
+    report("Could not evaluate the expression in the while condition", "",
+           w->condition->line_no);
+    return;
+  }
+  while (is_truthy(o)) {
+    visit(w->body);
+    o = visit(w->condition);
+    if (o.type == UNDEFINED) {
+      report("Could not evaluate the expression in the while condition", "",
+             w->condition->line_no);
+      return;
+    }
+  }
+}
+
+Object Evaluator::visit_call(Call *c) {
+  // get the function object
+  Object callee = visit(c->callee);
+  std::vector<Object> args;
+  for (Expr *e : c->arguments) {
+    Object o = visit(e);
+    if (o.type == UNDEFINED) {
+      report("Could not evaluate the argument", "", e->line_no);
+      return o;
+    }
+    args.push_back(o);
+  }
+  if (callee.type != FUNCTION) {
+    report("Can only call functions and classes", "", c->paren->line_no);
+    return Object();
+  }
+  if (callee.val == nullptr) {
+    report("Function object not defined with a callable. Report to "
+           "askarthikkumar@gmail.com",
+           "", c->paren->line_no);
+    return Object();
+  }
+  Callable *func = (Callable *)(callee.val);
+  if (args.size() != func->arity()) {
+    report("Expected " + std::to_string(func->arity()) + " arguments but got " +
+               std::to_string(args.size()),
+           "", c->paren->line_no);
+    return Object();
+  }
+  spdlog::debug("Calling the function");
+  return func->call(args, this);
+}
+
+void Evaluator::execute_block(std::vector<Stmt *> statements,
+                              Environment *env) {
+  Environment *old_env = this->env;
+  try {
+    this->env = new Environment(env);
+    for (Stmt *s : statements) {
+      visit(s);
+    }
+  } catch (Object &o) {
+    spdlog::debug("Caught the return object {}", Object::object_to_str(o));
+    this->env = old_env;
+    throw o;
+  }
+  this->env = old_env;
+}
+
+void Evaluator::visit_function(Function *f) {
+  auto func = new LoxFunction(f, {});
+  env->define(f->name->literal_string, Object(FUNCTION, func));
+  func->closure = env;
+  return;
+}
+
+void Evaluator::visit_return(Return *r) {
+  Object value;
+  if (r->value != nullptr) {
+    value = visit(r->value);
+  }
+  throw value;
 }
