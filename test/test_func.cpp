@@ -98,6 +98,41 @@ TEST(FunctionTest, FibonacciFunction) {
   ASSERT_TRUE(*(float *)(eval.env->get("a")->val) == 13.0);
 }
 
+// A test to check if function closure works
+TEST(FunctionTest, ClosureFunctionTest) {
+  std::string test_code = R"(
+                                fun makeCounter() {
+                                    var i = 0;
+                                    fun count() {
+                                        i = i + 1;
+                                    }
+                                    return count;
+                                }
+                                var counter = makeCounter();
+                                var a = counter(); // "1".
+                                var b = counter(); // "2".
+                                )";
+  Scanner scanner;
+  scanner.init(test_code);
+  scanner.scan();
+  Parser parser;
+  parser.init(scanner.get_tokens());
+  std::vector<Stmt *> stmts = parser.parse_stmts();
+  Evaluator eval;
+  eval.eval(stmts);
+  ASSERT_TRUE(eval.env->get("makeCounter") != nullptr);
+  ASSERT_TRUE(eval.env->get("counter") != nullptr);
+  ASSERT_TRUE(eval.env->get("a") != nullptr);
+  ASSERT_TRUE(eval.env->get("b") != nullptr);
+  // assert that value of a is 1 and value of b is 2
+  ASSERT_TRUE(eval.env->get("a")->type == ObjectType::FLOAT);
+  ASSERT_TRUE(eval.env->get("a")->val != nullptr);
+  ASSERT_TRUE(*(float *)(eval.env->get("a")->val) == 1.0);
+  ASSERT_TRUE(eval.env->get("b")->type == ObjectType::FLOAT);
+  ASSERT_TRUE(eval.env->get("b")->val != nullptr);
+  ASSERT_TRUE(*(float *)(eval.env->get("b")->val) == 2.0);
+}
+
 int main(int argc, char **argv) {
   spdlog::cfg::load_env_levels();
   spdlog::set_pattern("%^[%l]%$ %v");
