@@ -41,3 +41,18 @@ Object *Environment::get(const std::string &name) {
   }
   return o;
 }
+
+std::string Environment::print() {
+  // print the key value store of the environment
+  // and then print the enclosing environment
+  // if it exists
+  std::string ret = "";
+  for (auto &kv : env_map) {
+    ret += kv.first + " = " + Object::object_to_str(kv.second) + "\n";
+  }
+  if (enclosing != nullptr) {
+    ret += "Enclosing environment:\n";
+    ret += enclosing->print();
+  }
+  return ret;
+}

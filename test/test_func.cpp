@@ -105,6 +105,7 @@ TEST(FunctionTest, ClosureFunctionTest) {
                                     var i = 0;
                                     fun count() {
                                         i = i + 1;
+                                        return i;
                                     }
                                     return count;
                                 }

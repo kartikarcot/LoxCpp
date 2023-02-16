@@ -17,5 +17,6 @@ public:
   [[nodiscard]] bool assign(const std::string &name, const Object &value);
   Object *get(const Token &t);
   Object *get(const std::string &name);
+  std::string print();
   ~Environment();
 };

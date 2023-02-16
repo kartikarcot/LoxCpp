@@ -3,11 +3,14 @@
 #include "env.h"
 #include "eval.h"
 
-LoxFunction::LoxFunction(Function *f) { this->f = f; }
+LoxFunction::LoxFunction(Function *f, const Environment &closure) {
+  this->f = f;
+  this->closure = closure;
+}
 
 Object LoxFunction::call(std::vector<Object> args, Evaluator *eval) {
   // TODO: Should this be just the globals?
-  Environment *local = new Environment(eval->globals);
+  Environment *local = new Environment(&closure);
   for (size_t i = 0; i < f->params.size(); i++) {
     local->define(f->params[i]->literal_string, args[i]);
   }
