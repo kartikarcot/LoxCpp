@@ -5,7 +5,10 @@
 #include "printer.h"
 #include "token.h"
 #include "utils.h"
+#include <cassert>
+#include <chrono>
 #include <cstddef>
+#include <math.h>
 
 Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
 
