@@ -11,7 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-
+    - name: Setup C/C++ Compiler
+      uses: rlalik/setup-cpp-compiler@v1.2
+      with:
+        compiler: clang-12
     - name: cmake configure
       run: mkdir build && cd build && cmake ../
     - name: build binaries
