@@ -1,5 +1,6 @@
 #pragma once
 #include "stdarg.h"
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -41,7 +42,7 @@ public:
     }
     // Read the category from the environment
     const char *category = std::getenv("LOG_CATEGORY");
-    if (category != nullptr && std::strlen(category) > 0) {
+    if (category != nullptr && strlen(category) > 0) {
       category_ = category;
     } else {
       category_ = LogCategory::ALL;
@@ -50,8 +51,8 @@ public:
 
   template <typename... Args>
   void Log(LogLevel level, const char *category, Args... args) {
-    if (level <= level_ && ((std::strcmp(category_, LogCategory::ALL) == 0) ||
-                            std::strcmp(category_, category) == 0)) {
+    if (level <= level_ && ((strcmp(category_, LogCategory::ALL) == 0) ||
+                            strcmp(category_, category) == 0)) {
       out_ << "[" << std::string(category_) << "] ";
       LogImpl(args...);
     }
