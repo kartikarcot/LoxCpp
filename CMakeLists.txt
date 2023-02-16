@@ -1,7 +1,7 @@
 project(LoxCpp)
 
 cmake_minimum_required(VERSION 3.2)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -13,9 +13,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 set(INSTALL_DESTINATION "$ENV{HOME}/.local/bin")
-
-add_library(spdlog INTERFACE)
-target_include_directories(spdlog INTERFACE ${CMAKE_SOURCE_DIR}/include/spdlog)
 
 # This somehow enables registering of unit tests
 enable_testing()

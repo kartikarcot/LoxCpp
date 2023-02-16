@@ -1,6 +1,7 @@
 #include "logger.h"
 #include "stringbuffer.h"
 #include "utils.h"
+#include <cassert>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
