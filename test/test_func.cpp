@@ -131,6 +131,37 @@ TEST(FunctionTest, ClosureFunctionTest) {
   ASSERT_TRUE(*(float *)(eval.env->get("b")->val) == 2.0);
 }
 
+// A test of frozen closure
+TEST(FunctionTest, FrozenClosure) {
+  std::string test_code = R"(
+                                var a = "global";
+                                fun showA() {
+                                  return a;
+                                }
+
+                                var ret1 = showA();
+                                var a = "block";
+                                var ret2 = showA();
+                                )";
+  Scanner scanner;
+  scanner.init(test_code);
+  scanner.scan();
+  Parser parser;
+  parser.init(scanner.get_tokens());
+  std::vector<Stmt *> stmts = parser.parse_stmts();
+  Evaluator eval;
+  eval.eval(stmts);
+  // assert that ret1 and ret2 are equal to global
+  ASSERT_TRUE(eval.env->get("ret1") != nullptr);
+  ASSERT_TRUE(eval.env->get("ret2") != nullptr);
+  ASSERT_TRUE(eval.env->get("ret1")->type == ObjectType::STR);
+  ASSERT_TRUE(eval.env->get("ret2")->type == ObjectType::STR);
+  ASSERT_TRUE(eval.env->get("ret1")->val != nullptr);
+  ASSERT_TRUE(eval.env->get("ret2")->val != nullptr);
+  ASSERT_TRUE(std::string((char *)(eval.env->get("ret1")->val)) == "global");
+  ASSERT_TRUE(std::string((char *)(eval.env->get("ret2")->val)) == "global");
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

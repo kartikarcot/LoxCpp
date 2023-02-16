@@ -15,3 +15,21 @@ print(area);
     var area=PI*radius*radius;
     print(area);
 }
+
+var a = "outer";
+{
+    print(a);
+    var a = "inner";
+    print(a);
+}
+
+var a = "global";
+{
+  fun showA() {
+    print(a);
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}

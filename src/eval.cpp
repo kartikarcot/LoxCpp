@@ -666,9 +666,8 @@ void Evaluator::execute_block(std::vector<Stmt *> statements,
 }
 
 void Evaluator::visit_function(Function *f) {
-  auto func = new LoxFunction(f, {});
+  auto func = new LoxFunction(f, env);
   env->define(f->name->literal_string, Object(FUNCTION, func));
-  func->closure = env;
   return;
 }
 
