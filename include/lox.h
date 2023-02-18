@@ -1,6 +1,7 @@
 #pragma once
 #include "eval.h"
 #include "parser.h"
+#include "resolver.h"
 #include "scanner.h"
 #include <string>
 
@@ -10,6 +11,9 @@ public:
   Scanner scanner_;
   Parser parser_;
   Evaluator eval_;
+  Resolver resolver_;
+
+  Lox() : scanner_(), parser_(), eval_(), resolver_(&eval_){};
 
   void error(const std::string &message, int line_no);
   void report(const std::string &message, const std::string &where,

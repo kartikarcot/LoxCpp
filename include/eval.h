@@ -8,6 +8,7 @@ public:
   Evaluator();
   Environment *globals;
   Environment *env;
+  std::unordered_map<Expr *, int> locals;
   Object visit_unary(Unary *u);
   Object visit_binary(Binary *b);
   Object visit_literal(Literal *l);
@@ -17,6 +18,7 @@ public:
   Object visit_assign(Assign *a);
   Object visit_call(Call *c);
   Object eval(Expr *e);
+  Object *lookup_variable(Token *name, Expr *expr);
   void visit_block(Block *b);
   void visit_if(If *i);
   void visit_while(While *w);
@@ -26,5 +28,6 @@ public:
   void visit_function(Function *f);
   void visit_return(Return *r);
   void execute_block(std::vector<Stmt *> stmts, Environment *env);
+  void resolve(Expr *e, int depth);
   ~Evaluator();
 };

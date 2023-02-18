@@ -6,6 +6,7 @@
 #include "eval.h"
 #include "lox.h"
 #include "loxfun.h"
+#include "resolver.h"
 #include "gtest/gtest.h"
 
 TEST(FunctionTest, ParseSimpleFunction) {
@@ -150,6 +151,8 @@ TEST(FunctionTest, FrozenClosure) {
   parser.init(scanner.get_tokens());
   std::vector<Stmt *> stmts = parser.parse_stmts();
   Evaluator eval;
+  Resolver resolver(&eval);
+  resolver.resolve(stmts);
   eval.eval(stmts);
   // assert that ret1 and ret2 are equal to global
   ASSERT_TRUE(eval.env->get("ret1") != nullptr);

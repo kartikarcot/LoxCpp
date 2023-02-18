@@ -17,6 +17,11 @@ target_include_directories(parser PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_dependencies(parser ast_file_gen)
 target_link_libraries(parser PUBLIC token printer)
 
+add_library(resolver resolver.cpp utils.cpp)
+target_include_directories(resolver PUBLIC ${CMAKE_SOURCE_DIR}/include)
+add_dependencies(resolver ast_file_gen)
+target_link_libraries(resolver PUBLIC token printer parser eval)
+
 add_library(printer printer.cpp)
 target_include_directories(printer PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_dependencies(printer ast_file_gen)
@@ -24,7 +29,7 @@ add_dependencies(printer ast_file_gen)
 add_library(lox lox.cpp)
 target_include_directories(lox PUBLIC ${CMAKE_SOURCE_DIR}/include)
 add_dependencies(lox ast_file_gen)
-target_link_libraries(lox PUBLIC parser scanner printer eval)
+target_link_libraries(lox PUBLIC parser scanner printer eval resolver)
 
 
 add_executable(cpplox main.cpp)

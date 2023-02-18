@@ -51,8 +51,13 @@ public:
 
   template <typename... Args>
   void Log(LogLevel level, const char *category, Args... args) {
-    if (level <= level_ && ((strcmp(category_, LogCategory::ALL) == 0) ||
-                            strcmp(category_, category) == 0)) {
+    // Check if the level is less than the level_ and if the category is the
+    // same as the category_ or if the category_ is ALL
+    // or if the level is ERROR
+    // then log the message
+    if (level == LogLevel::ERROR ||
+        (level <= level_ && ((strcmp(category_, LogCategory::ALL) == 0) ||
+                             strcmp(category_, category) == 0))) {
       out_ << "[" << std::string(category_) << "] ";
       LogImpl(args...);
     }

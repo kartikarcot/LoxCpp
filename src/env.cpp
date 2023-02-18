@@ -1,4 +1,5 @@
 #include "env.h"
+#include "logger.h"
 #include "utils.h"
 
 Environment::~Environment() {
@@ -54,4 +55,36 @@ std::string Environment::print() {
     ret += enclosing->print();
   }
   return ret;
+}
+
+Object *Environment::get_at(int distance, const std::string &name) {
+  // get the environment at the given distance
+  // and then get the value from that environment
+  Environment *e = this;
+  for (int i = 0; i < distance; i++) {
+    if (e->enclosing == nullptr) {
+      CLog::FLog(LogLevel::ERROR, LogCategory::ENV,
+                 "[get_at] Enclosing environment is null");
+      return nullptr;
+    }
+    e = e->enclosing;
+  }
+  return e->get(name);
+}
+
+bool Environment::assign_at(int distance, const std::string &name,
+                            const Object &value) {
+  // get the environment at the given distance
+  // and then assign the value to that environment
+  Environment *e = this;
+  for (int i = 0; i < distance; i++) {
+    if (e->enclosing == nullptr) {
+      CLog::FLog(LogLevel::ERROR, LogCategory::ENV,
+                 "[assign_at] Enclosing environment is null");
+      return false;
+    }
+    e = e->enclosing;
+  }
+  e->define(name, value);
+  return true;
 }

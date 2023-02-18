@@ -393,8 +393,17 @@ Object Evaluator::visit_binary(Binary *b) {
   }
 }
 
+Object *Evaluator::lookup_variable(Token *name, Expr *expr) {
+  if (locals.find(expr) != locals.end()) {
+    int distance = locals[expr];
+    return env->get_at(distance, name->literal_string);
+  } else {
+    return globals->get(name->literal_string);
+  }
+}
+
 Object Evaluator::visit_variable(Variable *v) {
-  Object *obj_ptr = env->get(*v->name);
+  Object *obj_ptr = lookup_variable(v->name, v);
   if (obj_ptr != nullptr) {
     return *obj_ptr;
   }
@@ -406,15 +415,22 @@ Object Evaluator::visit_variable(Variable *v) {
 Object Evaluator::visit_assign(Assign *a) {
   const Object &obj = visit(a->value);
   if (obj.type == UNDEFINED) {
+    report("Could not evaluate the value of the assignment", "",
+           a->value->line_no);
     return obj;
   }
-  bool ret = env->assign(a->name->literal_string, obj);
-  if (!ret) {
-    report("Variable " + a->name->literal_string + " is not defined", "",
-           a->name->line_no);
-    return Object();
+  if (locals.find(a) != locals.end()) {
+    int distance = locals[a];
+    bool ret = env->assign_at(distance, a->name->literal_string, obj);
+    return obj;
+  } else {
+    bool ret = globals->assign(a->name->literal_string, obj);
+    return obj;
   }
-  return obj;
+  report("Variable " + a->name->literal_string +
+             " is not defined to be assigned to",
+         "", a->name->line_no);
+  return Object();
 }
 
 Object Evaluator::visit_logical(Logical *l) {
@@ -678,3 +694,5 @@ void Evaluator::visit_return(Return *r) {
   }
   throw value;
 }
+
+void Evaluator::resolve(Expr *e, int depth) { locals.insert({e, depth}); }

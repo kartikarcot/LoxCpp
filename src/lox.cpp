@@ -11,6 +11,9 @@ void Lox::run(const std::string &lox_code) {
   auto tokens = scanner_.get_tokens();
   parser_.init(tokens);
   auto stmts = parser_.parse_stmts();
+  if (stmts.empty())
+    return;
+  resolver_.resolve(stmts);
   eval_.eval(stmts);
 }
 
