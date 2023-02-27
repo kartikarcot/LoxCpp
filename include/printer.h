@@ -3,6 +3,6 @@
 
 class PrettyPrinter {
 public:
-  std::string paranthesize(Expr *e);
-  std::string visit(Expr *e);
+  std::string paranthesize(const Expr *e);
+  std::string visit(const Expr *e);
 };

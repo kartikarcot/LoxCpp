@@ -1,19 +1,19 @@
 Basename Expr
-Assign   => Token* name, Expr* value
-Binary   => Expr* left, Token* op, Expr* right
-Grouping => Expr* expression
-Literal  => Token* value
-Logical  => Expr* left, Token* op, Expr* right
-Unary    => Token* op, Expr* right
-Call     => Expr* callee, Token* paren, std::vector<Expr*> arguments
-Variable => Token* name
+Assign   => std::shared_ptr<Token> name, std::shared_ptr<Expr> value
+Binary   => std::shared_ptr<Expr> left, std::shared_ptr<Token> op, std::shared_ptr<Expr> right
+Grouping => std::shared_ptr<Expr> expression
+Literal  => std::shared_ptr<Token> value
+Logical  => std::shared_ptr<Expr> left, std::shared_ptr<Token> op, std::shared_ptr<Expr> right
+Unary    => std::shared_ptr<Token> op, std::shared_ptr<Expr> right
+Call     => std::shared_ptr<Expr> callee, std::shared_ptr<Token> paren, std::vector<std::shared_ptr<Expr>> arguments
+Variable => std::shared_ptr<Token> name
 ---
 Basename Stmt
-Block      => std::vector<Stmt*> statements
-Expression => Expr* expression
-Print      => std::vector<Expr*> expressions
-Var        => Token* name, Expr* initializer
-If         => Expr* condition, Stmt* thenBranch, Stmt* elseBranch
-While      => Expr* condition, Stmt* body
-Function   => Token* name, std::vector<Token*> params, std::vector<Stmt*> body
-Return     => Token* keyword, Expr* value
+Block      => std::vector<std::shared_ptr<Stmt>> statements
+Expression => std::shared_ptr<Expr> expression
+Print      => std::vector<std::shared_ptr<Expr>> expressions
+Var        => std::shared_ptr<Token> name, std::shared_ptr<Expr> initializer
+If         => std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch
+While      => std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body
+Function   => std::shared_ptr<Token> name, std::vector<std::shared_ptr<Token>> params, std::vector<std::shared_ptr<Stmt>> body
+Return     => std::shared_ptr<Token> keyword, std::shared_ptr<Expr> value

@@ -5,111 +5,98 @@
 class Expr {
 public:
   size_t line_no = 0;
-  template <typename T, typename V> T accept(V v) { return v->visit(this); }
+  template <typename T, typename V> T accept(V v) const {
+    return v->visit(this);
+  }
   virtual std::string print_type() { return "Expr"; }
   virtual ~Expr() {}
 };
 
 class Assign : public Expr {
 public:
-  Token *name;
-  Expr *value;
+  std::shared_ptr<Token> name;
+  std::shared_ptr<Expr> value;
   virtual std::string print_type() { return "Assign"; }
 
-  ~Assign() {
-    delete name;
-    delete value;
-  }
+  ~Assign() {}
 };
 
 class Binary : public Expr {
 public:
-  Expr *left;
-  Token *op;
-  Expr *right;
+  std::shared_ptr<Expr> left;
+  std::shared_ptr<Token> op;
+  std::shared_ptr<Expr> right;
   virtual std::string print_type() { return "Binary"; }
 
-  ~Binary() {
-    delete left;
-    delete op;
-    delete right;
-  }
+  ~Binary() {}
 };
 
 class Grouping : public Expr {
 public:
-  Expr *expression;
+  std::shared_ptr<Expr> expression;
   virtual std::string print_type() { return "Grouping"; }
 
-  ~Grouping() { delete expression; }
+  ~Grouping() {}
 };
 
 class Literal : public Expr {
 public:
-  Token *value;
+  std::shared_ptr<Token> value;
   virtual std::string print_type() { return "Literal"; }
 
-  ~Literal() { delete value; }
+  ~Literal() {}
 };
 
 class Logical : public Expr {
 public:
-  Expr *left;
-  Token *op;
-  Expr *right;
+  std::shared_ptr<Expr> left;
+  std::shared_ptr<Token> op;
+  std::shared_ptr<Expr> right;
   virtual std::string print_type() { return "Logical"; }
 
-  ~Logical() {
-    delete left;
-    delete op;
-    delete right;
-  }
+  ~Logical() {}
 };
 
 class Unary : public Expr {
 public:
-  Token *op;
-  Expr *right;
+  std::shared_ptr<Token> op;
+  std::shared_ptr<Expr> right;
   virtual std::string print_type() { return "Unary"; }
 
-  ~Unary() {
-    delete op;
-    delete right;
-  }
+  ~Unary() {}
 };
 
 class Call : public Expr {
 public:
-  Expr *callee;
-  Token *paren;
-  std::vector<Expr *> arguments;
+  std::shared_ptr<Expr> callee;
+  std::shared_ptr<Token> paren;
+  std::vector<std::shared_ptr<Expr>> arguments;
   virtual std::string print_type() { return "Call"; }
 
-  ~Call() {
-    delete callee;
-    delete paren;
-  }
+  ~Call() {}
 };
 
 class Variable : public Expr {
 public:
-  Token *name;
+  std::shared_ptr<Token> name;
   virtual std::string print_type() { return "Variable"; }
 
-  ~Variable() { delete name; }
+  ~Variable() {}
 };
 
 class Stmt {
 public:
   size_t line_no = 0;
-  template <typename T, typename V> T accept(V v) { return v->visit(this); }
+  template <typename T, typename V> T accept(V v) const {
+    return v->visit(this);
+  }
   virtual std::string print_type() { return "Expr"; }
   virtual ~Stmt() {}
 };
 
 class Block : public Stmt {
 public:
-  std::vector<Stmt *> statements;
+  std::vector<std::shared_ptr<Stmt>> statements;
   virtual std::string print_type() { return "Block"; }
 
   ~Block() {}
@@ -117,15 +104,15 @@ public:
 
 class Expression : public Stmt {
 public:
-  Expr *expression;
+  std::shared_ptr<Expr> expression;
   virtual std::string print_type() { return "Expression"; }
 
-  ~Expression() { delete expression; }
+  ~Expression() {}
 };
 
 class Print : public Stmt {
 public:
-  std::vector<Expr *> expressions;
+  std::vector<std::shared_ptr<Expr>> expressions;
   virtual std::string print_type() { return "Print"; }
 
   ~Print() {}
@@ -133,60 +120,47 @@ public:
 
 class Var : public Stmt {
 public:
-  Token *name;
-  Expr *initializer;
+  std::shared_ptr<Token> name;
+  std::shared_ptr<Expr> initializer;
   virtual std::string print_type() { return "Var"; }
 
-  ~Var() {
-    delete name;
-    delete initializer;
-  }
+  ~Var() {}
 };
 
 class If : public Stmt {
 public:
-  Expr *condition;
-  Stmt *thenBranch;
-  Stmt *elseBranch;
+  std::shared_ptr<Expr> condition;
+  std::shared_ptr<Stmt> thenBranch;
+  std::shared_ptr<Stmt> elseBranch;
   virtual std::string print_type() { return "If"; }
 
-  ~If() {
-    delete condition;
-    delete thenBranch;
-    delete elseBranch;
-  }
+  ~If() {}
 };
 
 class While : public Stmt {
 public:
-  Expr *condition;
-  Stmt *body;
+  std::shared_ptr<Expr> condition;
+  std::shared_ptr<Stmt> body;
   virtual std::string print_type() { return "While"; }
 
-  ~While() {
-    delete condition;
-    delete body;
-  }
+  ~While() {}
 };
 
 class Function : public Stmt {
 public:
-  Token *name;
-  std::vector<Token *> params;
-  std::vector<Stmt *> body;
+  std::shared_ptr<Token> name;
+  std::vector<std::shared_ptr<Token>> params;
+  std::vector<std::shared_ptr<Stmt>> body;
   virtual std::string print_type() { return "Function"; }
 
-  ~Function() { delete name; }
+  ~Function() {}
 };
 
 class Return : public Stmt {
 public:
-  Token *keyword;
-  Expr *value;
+  std::shared_ptr<Token> keyword;
+  std::shared_ptr<Expr> value;
   virtual std::string print_type() { return "Return"; }
 
-  ~Return() {
-    delete keyword;
-    delete value;
-  }
+  ~Return() {}
 };
