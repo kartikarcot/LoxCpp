@@ -2,12 +2,13 @@
 #include "ast.h"
 #include "env.h"
 #include "object.h"
+#include <memory>
 
 class Evaluator {
 public:
   Evaluator();
-  Environment *globals;
-  Environment *env;
+  std::shared_ptr<Environment> globals;
+  std::shared_ptr<Environment> env;
   std::vector<Stmt *> stmts_;
   std::unordered_map<Expr *, int> locals;
   Object visit_unary(Unary *u);
@@ -28,7 +29,8 @@ public:
   void visit(Stmt *s);
   void visit_function(Function *f);
   void visit_return(Return *r);
-  void execute_block(std::vector<Stmt *> stmts, Environment *env);
+  void execute_block(std::vector<Stmt *> stmts,
+                     std::shared_ptr<Environment> env);
   void resolve(Expr *e, int depth);
   ~Evaluator();
 };

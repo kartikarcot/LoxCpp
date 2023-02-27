@@ -3,8 +3,9 @@
 #include "env.h"
 #include "eval.h"
 #include "logger.h"
+#include <memory>
 
-LoxFunction::LoxFunction(Function *f, Environment *closure) {
+LoxFunction::LoxFunction(Function *f, std::shared_ptr<Environment> closure) {
   this->f = f;
   this->closure = closure;
   CLog::FLog(LogLevel::DEBUG, LogCategory::FUN, "Creating function %s",
@@ -21,14 +22,12 @@ Object LoxFunction::call(std::vector<Object> args, Evaluator *eval) {
              args.size());
   CLog::FLog(LogLevel::DEBUG, LogCategory::FUN,
              "Closure has the following variables:\n%s\nAddress: %zu",
-             closure->print().c_str(), (size_t)closure);
-  Environment *local = new Environment(closure);
+             closure->print().c_str(), (size_t)closure.get());
+  auto local = std::make_shared<Environment>(closure.get());
   for (size_t i = 0; i < f->params.size(); i++) {
     local->define(f->params[i]->literal_string, args[i]);
   }
 
-  CLog::FLog(LogLevel::DEBUG, LogCategory::FUN, "Local Environment [%s] :\n%s",
-             f->name->literal_string.c_str(), local->print().c_str());
   try {
     eval->execute_block(f->body, local);
   } catch (Object ret) {
@@ -37,8 +36,12 @@ Object LoxFunction::call(std::vector<Object> args, Evaluator *eval) {
                Object::object_to_str(ret).c_str());
     return ret;
   }
-  // TODO: What about different return types
   return Object();
 }
 
 int LoxFunction::arity() { return f->params.size(); }
+
+LoxFunction::~LoxFunction() {
+  // we will delete environs in the interpreter
+  // at the block level
+}

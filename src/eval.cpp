@@ -30,7 +30,7 @@ public:
 };
 
 Evaluator::Evaluator() {
-  globals = new Environment();
+  globals = std::make_shared<Environment>();
   globals->define("clock", Object(FUNCTION, new Clock()));
   env = globals;
 }
@@ -536,15 +536,14 @@ Object Evaluator::visit(Expr *e) {
 
 void Evaluator::visit_block(Block *b) {
   assert(b != nullptr);
-  Environment *old_env = env;
+  auto old_env = env;
   {
-    this->env = new Environment(old_env);
+    this->env = std::make_shared<Environment>(old_env.get());
     for (Stmt *st : b->statements) {
       assert(st != nullptr);
       visit(st);
     }
   }
-  /* delete this->env; */
   this->env = old_env;
 }
 
@@ -681,24 +680,19 @@ Object Evaluator::visit_call(Call *c) {
 }
 
 void Evaluator::execute_block(std::vector<Stmt *> statements,
-                              Environment *clos_env) {
-  Environment *old_env = this->env;
+                              std::shared_ptr<Environment> clos_env) {
+  auto old_env = this->env;
   try {
     this->env = clos_env;
-    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
-               "Created a new environment with enclosing as %zu",
-               (size_t)this->env->enclosing);
     for (Stmt *s : statements) {
       visit(s);
     }
   } catch (Object &o) {
     CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
                "Caught the return object %s", Object::object_to_str(o).c_str());
-    /* delete this->env; */
     this->env = old_env;
     throw o;
   }
-  /* delete this->env; */
   this->env = old_env;
 }
 
@@ -723,6 +717,4 @@ Evaluator::~Evaluator() {
   for (Stmt *s : stmts_) {
     delete s;
   }
-  // delete the global environment
-  delete globals;
 }
