@@ -11,6 +11,7 @@ public:
   } current_function_type = FunctionType::NONE;
   std::vector<std::unordered_map<std::string, bool>> scopes;
   Evaluator *eval;
+  bool had_error_ = false;
   Resolver(Evaluator *eval) : eval(eval){};
   void visit(Stmt *stmt);
   void visit(Expr *expr);
@@ -33,7 +34,7 @@ public:
   void visit_while(While *wh);
   void begin_scope();
   void end_scope();
-  void resolve(std::vector<Stmt *> stmts);
+  bool resolve(std::vector<Stmt *> stmts);
   void resolve(Stmt *stmt);
   void resolve_local(Expr *e, const std::string &name);
   void resolve(Expr *expr);

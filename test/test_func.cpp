@@ -50,7 +50,10 @@ TEST(FunctionTest, EvalFunctionDeclaration) {
   parser.init(scanner.get_tokens());
   std::vector<Stmt *> stmts = parser.parse_stmts();
   Evaluator eval;
-  eval.eval(stmts);
+  Resolver resolver(&eval);
+  bool ret = resolver.resolve(stmts);
+  ASSERT_TRUE(ret);
+  eval.eval(std::move(stmts));
   ASSERT_TRUE(eval.env->get("sum") != nullptr);
   ASSERT_TRUE(eval.env->get("a") != nullptr);
   // assert that the object val pointer is a LoxFunction ptr
@@ -82,7 +85,11 @@ TEST(FunctionTest, FibonacciFunction) {
   parser.init(scanner.get_tokens());
   std::vector<Stmt *> stmts = parser.parse_stmts();
   Evaluator eval;
-  eval.eval(stmts);
+  Resolver resolver(&eval);
+  bool ret = resolver.resolve(stmts);
+  ASSERT_TRUE(ret);
+
+  eval.eval(std::move(stmts));
   ASSERT_TRUE(eval.env->get("fib") != nullptr);
   ASSERT_TRUE(eval.env->get("a") != nullptr);
   // assert that the object val pointer is a LoxFunction ptr
@@ -118,7 +125,11 @@ TEST(FunctionTest, ClosureFunctionTest) {
   parser.init(scanner.get_tokens());
   std::vector<Stmt *> stmts = parser.parse_stmts();
   Evaluator eval;
-  eval.eval(stmts);
+  Resolver resolver(&eval);
+  bool ret = resolver.resolve(stmts);
+  ASSERT_TRUE(ret);
+
+  eval.eval(std::move(stmts));
   ASSERT_TRUE(eval.env->get("makeCounter") != nullptr);
   ASSERT_TRUE(eval.env->get("counter") != nullptr);
   ASSERT_TRUE(eval.env->get("a") != nullptr);
@@ -136,13 +147,17 @@ TEST(FunctionTest, ClosureFunctionTest) {
 TEST(FunctionTest, FrozenClosure) {
   std::string test_code = R"(
                                 var a = "global";
-                                fun showA() {
-                                  return a;
-                                }
+                                var ret1 = "undefined";
+                                var ret2 = "undefined";
+                                {
+                                    fun showA() {
+                                      return a;
+                                    }
 
-                                var ret1 = showA();
-                                var a = "block";
-                                var ret2 = showA();
+                                    ret1 = showA();
+                                    var a = "block";
+                                    ret2 = showA();
+                                }
                                 )";
   Scanner scanner;
   scanner.init(test_code);
@@ -153,7 +168,7 @@ TEST(FunctionTest, FrozenClosure) {
   Evaluator eval;
   Resolver resolver(&eval);
   resolver.resolve(stmts);
-  eval.eval(stmts);
+  eval.eval(std::move(stmts));
   // assert that ret1 and ret2 are equal to global
   ASSERT_TRUE(eval.env->get("ret1") != nullptr);
   ASSERT_TRUE(eval.env->get("ret2") != nullptr);

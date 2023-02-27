@@ -5,10 +5,9 @@
 
 class Environment {
 private:
-  Environment *enclosing = nullptr;
-
 public:
   std::unordered_map<std::string, Object> env_map;
+  Environment *enclosing = nullptr;
 
 public:
   Environment() = default;

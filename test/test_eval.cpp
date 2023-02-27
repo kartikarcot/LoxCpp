@@ -355,7 +355,7 @@ TEST(EvalTest, stmt_eval_test_19) {
   }
   std::vector<Stmt *> stmts = {e1, e2, p};
   Evaluator eval;
-  eval.eval(stmts);
+  eval.eval(std::move(stmts));
 }
 
 TEST(EvalTest, stmt_eval_test_20) {
@@ -368,6 +368,7 @@ TEST(EvalTest, stmt_eval_test_20) {
   Lox lox;
   lox.run(test_code);
   Object *o = lox.eval_.env->get(Token(STRING, "a", nullptr, 0));
+
   EXPECT_TRUE(o != nullptr);
   EXPECT_EQ(Object::object_to_str(*o), "false");
 }

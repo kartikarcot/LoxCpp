@@ -1,5 +1,6 @@
 #include "resolver.h"
 #include "ast.h"
+#include "logger.h"
 
 void Resolver::visit(Stmt *stmt) {
   // try to cast this to block
@@ -65,10 +66,15 @@ void Resolver::visit_block(Block *block) {
   end_scope();
 }
 
-void Resolver::resolve(std::vector<Stmt *> stmts) {
+bool Resolver::resolve(std::vector<Stmt *> stmts) {
+  had_error_ = false;
   for (auto stmt : stmts) {
     resolve(stmt);
+    if (had_error_) {
+      return false;
+    }
   }
+  return true;
 }
 
 void Resolver::resolve(Stmt *stmt) { stmt->accept<void, Resolver *>(this); }
@@ -95,6 +101,7 @@ void Resolver::declare(Token *name) {
   if (scope.find(name->literal_string) != scope.end()) {
     report("Variable with this name already declared in this scope.", "",
            name->line_no);
+    had_error_ = true;
     return;
   }
   scope[name->literal_string] = false;
@@ -114,6 +121,7 @@ void Resolver::visit_var_expr(Variable *var_expr) {
       scopes.back().at(var_expr->name->literal_string) == false) {
     report("Cannot read local variable in its own initializer.", "",
            var_expr->line_no);
+    had_error_ = true;
     return;
   }
   resolve_local(var_expr, var_expr->name->literal_string);
@@ -123,6 +131,9 @@ void Resolver::resolve_local(Expr *e, const std::string &name) {
   for (int i = scopes.size() - 1; i >= 0; i--) {
     if (scopes[i].find(name) != scopes[i].end()) {
       eval->resolve(e, scopes.size() - 1 - i);
+      CLog::FLog(LogLevel::DEBUG, LogCategory::RESOLVER,
+                 "Resolved local variable %s at depth %zu at %zu", name.c_str(),
+                 scopes.size() - 1 - i, (size_t)e);
       return;
     }
   }
@@ -153,7 +164,7 @@ void Resolver::resolve_function(Function *f, FunctionType type) {
 }
 
 void Resolver::visit_expr_stmt(Expression *expr_stmt) {
-  resolve(expr_stmt);
+  resolve(expr_stmt->expression);
   return;
 }
 
@@ -176,6 +187,7 @@ void Resolver::visit_print(Print *prt) {
 void Resolver::visit_return(Return *ret) {
   if (current_function_type == FunctionType::NONE) {
     report("Cannot return from top-level code.", "", ret->line_no);
+    had_error_ = true;
     return;
   }
   if (ret->value != nullptr) {

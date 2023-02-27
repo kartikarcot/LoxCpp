@@ -8,6 +8,7 @@ public:
   Evaluator();
   Environment *globals;
   Environment *env;
+  std::vector<Stmt *> stmts_;
   std::unordered_map<Expr *, int> locals;
   Object visit_unary(Unary *u);
   Object visit_binary(Binary *b);
@@ -22,7 +23,7 @@ public:
   void visit_block(Block *b);
   void visit_if(If *i);
   void visit_while(While *w);
-  void eval(std::vector<Stmt *> stmts);
+  void eval(std::vector<Stmt *> &&stmts);
   Object visit(Expr *e);
   void visit(Stmt *s);
   void visit_function(Function *f);

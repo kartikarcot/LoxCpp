@@ -17,6 +17,7 @@ const constexpr char *PARSER = "PARSER";
 const constexpr char *EVAL = "EVAL";
 const constexpr char *ENV = "ENV";
 const constexpr char *ALL = "ALL";
+const constexpr char *RESOLVER = "RESOLVER";
 const constexpr char *FUN = "FUN";
 } // namespace LogCategory
 

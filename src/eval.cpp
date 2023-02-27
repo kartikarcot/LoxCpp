@@ -35,11 +35,11 @@ Evaluator::Evaluator() {
   env = globals;
 }
 
-Evaluator::~Evaluator() { delete globals; }
-
 // TODO(kartikarcot): take ownwership of these statements
 // and release them appropriately
-void Evaluator::eval(std::vector<Stmt *> stmts) {
+void Evaluator::eval(std::vector<Stmt *> &&stmts) {
+  // concatenate stmts_ and stmts
+  stmts_.insert(stmts_.end(), stmts.begin(), stmts.end());
   for (const auto &stmt : stmts) {
     if (stmt == nullptr) {
       CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
@@ -396,8 +396,14 @@ Object Evaluator::visit_binary(Binary *b) {
 Object *Evaluator::lookup_variable(Token *name, Expr *expr) {
   if (locals.find(expr) != locals.end()) {
     int distance = locals[expr];
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "Looking up variable %s at distance %d",
+               name->literal_string.c_str(), distance);
     return env->get_at(distance, name->literal_string);
   } else {
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "Looking up variable %s at global scope",
+               name->literal_string.c_str());
     return globals->get(name->literal_string);
   }
 }
@@ -409,6 +415,9 @@ Object Evaluator::visit_variable(Variable *v) {
   }
   report("Variable " + v->name->literal_string + " is not defined", "",
          v->name->line_no);
+
+  CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+             "Lookup failed with Environment:\n%s", this->env->print().c_str());
   return Object();
 }
 
@@ -421,9 +430,15 @@ Object Evaluator::visit_assign(Assign *a) {
   }
   if (locals.find(a) != locals.end()) {
     int distance = locals[a];
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "[Assign] Looking up variable %s at distance %d",
+               a->name->literal_string.c_str(), distance);
     bool ret = env->assign_at(distance, a->name->literal_string, obj);
     return obj;
   } else {
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "[Assign] Looking up variable %s at global scope",
+               a->name->literal_string.c_str());
     bool ret = globals->assign(a->name->literal_string, obj);
     return obj;
   }
@@ -529,6 +544,7 @@ void Evaluator::visit_block(Block *b) {
       visit(st);
     }
   }
+  /* delete this->env; */
   this->env = old_env;
 }
 
@@ -665,19 +681,24 @@ Object Evaluator::visit_call(Call *c) {
 }
 
 void Evaluator::execute_block(std::vector<Stmt *> statements,
-                              Environment *env) {
+                              Environment *clos_env) {
   Environment *old_env = this->env;
   try {
-    this->env = new Environment(env);
+    this->env = clos_env;
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "Created a new environment with enclosing as %zu",
+               (size_t)this->env->enclosing);
     for (Stmt *s : statements) {
       visit(s);
     }
   } catch (Object &o) {
     CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
                "Caught the return object %s", Object::object_to_str(o).c_str());
+    /* delete this->env; */
     this->env = old_env;
     throw o;
   }
+  /* delete this->env; */
   this->env = old_env;
 }
 
@@ -696,3 +717,12 @@ void Evaluator::visit_return(Return *r) {
 }
 
 void Evaluator::resolve(Expr *e, int depth) { locals.insert({e, depth}); }
+
+Evaluator::~Evaluator() {
+  // delete all statement objects
+  for (Stmt *s : stmts_) {
+    delete s;
+  }
+  // delete the global environment
+  delete globals;
+}
