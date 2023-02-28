@@ -5,7 +5,8 @@
 #include "logger.h"
 #include <memory>
 
-LoxFunction::LoxFunction(Function *f, std::shared_ptr<Environment> closure) {
+LoxFunction::LoxFunction(const Function *f,
+                         std::shared_ptr<Environment> closure) {
   this->f = f;
   this->closure = closure;
   CLog::FLog(LogLevel::DEBUG, LogCategory::FUN, "Creating function %s",

@@ -85,8 +85,6 @@ bool Environment::assign_at(int distance, const std::string &name,
     }
     e = e->enclosing;
   }
-  CLog::FLog(LogLevel::ERROR, LogCategory::ENV,
-             "[assign_at] Assigning %s at %zu", name.c_str(), (size_t)e);
   e->define(name, value);
   return true;
 }

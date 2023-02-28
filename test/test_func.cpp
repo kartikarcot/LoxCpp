@@ -21,17 +21,17 @@ TEST(FunctionTest, ParseSimpleFunction) {
   scanner.scan();
   Parser parser;
   parser.init(scanner.get_tokens());
-  std::vector<Stmt *> stmts = parser.parse_stmts();
+  std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_stmts();
   // assert that we have two statements
   // and that the first one is a function
   ASSERT_EQ(stmts.size(), 2);
   // check that statment is castable to a Function pointer
-  ASSERT_TRUE(dynamic_cast<Function *>(stmts[0]));
+  ASSERT_TRUE(dynamic_cast<Function *>(stmts[0].get()));
   // assert that the num of args is 2
   // and that the body is a block
   // with one statement
-  ASSERT_EQ(((Function *)stmts[0])->params.size(), 2);
-  ASSERT_EQ(((Function *)stmts[0])->body.size(), 1);
+  ASSERT_EQ(((Function *)stmts[0].get())->params.size(), 2);
+  ASSERT_EQ(((Function *)stmts[0].get())->body.size(), 1);
 }
 
 // A test to parse and check if a function enters the environment
@@ -48,7 +48,7 @@ TEST(FunctionTest, EvalFunctionDeclaration) {
   scanner.scan();
   Parser parser;
   parser.init(scanner.get_tokens());
-  std::vector<Stmt *> stmts = parser.parse_stmts();
+  std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_stmts();
   Evaluator eval;
   Resolver resolver(&eval);
   bool ret = resolver.resolve(stmts);
@@ -83,7 +83,7 @@ TEST(FunctionTest, FibonacciFunction) {
   scanner.scan();
   Parser parser;
   parser.init(scanner.get_tokens());
-  std::vector<Stmt *> stmts = parser.parse_stmts();
+  std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_stmts();
   Evaluator eval;
   Resolver resolver(&eval);
   bool ret = resolver.resolve(stmts);
@@ -123,7 +123,7 @@ TEST(FunctionTest, ClosureFunctionTest) {
   scanner.scan();
   Parser parser;
   parser.init(scanner.get_tokens());
-  std::vector<Stmt *> stmts = parser.parse_stmts();
+  std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_stmts();
   Evaluator eval;
   Resolver resolver(&eval);
   bool ret = resolver.resolve(stmts);
@@ -164,7 +164,7 @@ TEST(FunctionTest, FrozenClosure) {
   scanner.scan();
   Parser parser;
   parser.init(scanner.get_tokens());
-  std::vector<Stmt *> stmts = parser.parse_stmts();
+  std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_stmts();
   Evaluator eval;
   Resolver resolver(&eval);
   resolver.resolve(stmts);
