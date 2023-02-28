@@ -103,12 +103,18 @@ static inline Object handle_plus(const Object &left_val,
                                  const Object &right_val) {
   // for now we handle only the addition of numbers
   ObjectType floaty = FLOAT;
-  if (!is_same_type(left_val, right_val, &floaty)) {
-    return Object();
+  ObjectType stringy = STR;
+  if (is_same_type(left_val, right_val, &floaty)) {
+    float &value1 = *((float *)left_val.val);
+    float &value2 = *((float *)right_val.val);
+    return {FLOAT, new float(value1 + value2)};
   }
-  float &value1 = *((float *)left_val.val);
-  float &value2 = *((float *)right_val.val);
-  return {FLOAT, new float(value1 + value2)};
+  if (is_same_type(left_val, right_val, &stringy)) {
+    std::string result =
+        Object::object_to_str(left_val) + Object::object_to_str(right_val);
+    return {STR, strdup(result.c_str())};
+  }
+  return Object();
 }
 
 static inline Object handle_minus(const Object &left_val,
