@@ -31,9 +31,24 @@ public:
   int arity() override { return 0; }
 };
 
+// A function to convert an object to string
+class ToString : public Callable {
+public:
+  Object call(std::vector<Object> args, Evaluator *) override {
+    if (args.size() != 1) {
+      CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+                 "toString() takes exactly 1 argument");
+      exit(-1);
+    }
+    return Object(STR, strdup(Object::object_to_str(args[0]).c_str()));
+  }
+  int arity() override { return 1; }
+};
+
 Evaluator::Evaluator() {
   globals = std::make_shared<Environment>();
   globals->define("clock", Object(FUNCTION, new Clock()));
+  globals->define("str", Object(FUNCTION, new ToString()));
   env = globals;
 }
 

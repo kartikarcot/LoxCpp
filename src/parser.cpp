@@ -499,7 +499,9 @@ std::shared_ptr<Stmt> Parser::parse_statement() {
   }
   default: {
     auto expr_st = parse_expression_statement();
-    expr_st->line_no = t.line_no;
+    if (expr_st) {
+      expr_st->line_no = t.line_no;
+    }
     return expr_st;
   }
   }

@@ -33,3 +33,17 @@ var a = "global";
   var a = "block";
   showA();
 }
+
+fun print10() {
+    var print_str = "";
+    fun print_rec(i) {
+        if (i > 0) {
+            print_str = print_str + str(i) + " ";
+            print_rec(i-1);
+        }
+    }
+    print_rec(10);
+    return print_str;
+}
+
+print(print10());
