@@ -2,14 +2,14 @@
 #include <sstream>
 #include <string>
 
-std::string PrettyPrinter::paranthesize(Expr *e) {
+std::string PrettyPrinter::paranthesize(const Expr *e) {
   return e->accept<std::string, PrettyPrinter *>(this);
 }
 
-std::string PrettyPrinter::visit(Expr *e) {
+std::string PrettyPrinter::visit(const Expr *e) {
   std::stringstream ss;
-  Binary *b = nullptr;
-  b = dynamic_cast<Binary *>(e);
+  const Binary *b = nullptr;
+  b = dynamic_cast<const Binary *>(e);
   if (b != nullptr) {
     ss << "(";
     ss << " " << b->op->literal_string;
@@ -18,8 +18,8 @@ std::string PrettyPrinter::visit(Expr *e) {
     ss << ")";
     return ss.str();
   }
-  Unary *u = nullptr;
-  u = dynamic_cast<Unary *>(e);
+  const Unary *u = nullptr;
+  u = dynamic_cast<const Unary *>(e);
   if (u != nullptr) {
     ss << "(";
     ss << " " << u->op->literal_string;
@@ -27,18 +27,18 @@ std::string PrettyPrinter::visit(Expr *e) {
     ss << ")";
     return ss.str();
   }
-  Literal *l = nullptr;
-  l = dynamic_cast<Literal *>(e);
+  const Literal *l = nullptr;
+  l = dynamic_cast<const Literal *>(e);
   if (l != nullptr) {
     return l->value->literal_string;
   }
-  Variable *v = nullptr;
-  v = dynamic_cast<Variable *>(e);
+  const Variable *v = nullptr;
+  v = dynamic_cast<const Variable *>(e);
   if (v != nullptr) {
     return v->name->literal_string;
   }
-  Call *c = nullptr;
-  c = dynamic_cast<Call *>(e);
+  const Call *c = nullptr;
+  c = dynamic_cast<const Call *>(e);
   if (c != nullptr) {
     ss << "(";
     ss << " " << c->callee->accept<std::string, PrettyPrinter *>(this);
@@ -48,8 +48,8 @@ std::string PrettyPrinter::visit(Expr *e) {
     ss << ")";
     return ss.str();
   }
-  Logical *l2 = nullptr;
-  l2 = dynamic_cast<Logical *>(e);
+  const Logical *l2 = nullptr;
+  l2 = dynamic_cast<const Logical *>(e);
   if (l2 != nullptr) {
     ss << "(";
     ss << " " << l2->op->literal_string;
@@ -58,8 +58,8 @@ std::string PrettyPrinter::visit(Expr *e) {
     ss << ")";
     return ss.str();
   }
-  Assign *a = nullptr;
-  a = dynamic_cast<Assign *>(e);
+  const Assign *a = nullptr;
+  a = dynamic_cast<const Assign *>(e);
   if (a != nullptr) {
     ss << "( assign ";
     ss << " " << a->name->literal_string;

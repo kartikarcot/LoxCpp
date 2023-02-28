@@ -47,7 +47,7 @@ const static std::vector<std::pair<TokenType, std::regex>> token_to_regex = {
 
     // literals
     {IDENTIFIER, std::regex("[_a-zA-Z][_a-zA-Z0-9]*")},
-    {STRING, std::regex("\".*\"")},
+    {STRING, std::regex("\"[^(\")]*\"")},
     {NUMBER, std::regex("[0-9]+(\\.[0-9]+)*")},
 
 };

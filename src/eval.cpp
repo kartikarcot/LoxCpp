@@ -10,7 +10,9 @@
 #include <cstddef>
 #include <math.h>
 
-Object Evaluator::eval(Expr *e) { return e->accept<Object, Evaluator *>(this); }
+Object Evaluator::eval(const Expr *e) {
+  return e->accept<Object, Evaluator *>(this);
+}
 
 // A function to get the current time
 double time_now() {
@@ -29,17 +31,32 @@ public:
   int arity() override { return 0; }
 };
 
+// A function to convert an object to string
+class ToString : public Callable {
+public:
+  Object call(std::vector<Object> args, Evaluator *) override {
+    if (args.size() != 1) {
+      CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+                 "toString() takes exactly 1 argument");
+      exit(-1);
+    }
+    return Object(STR, strdup(Object::object_to_str(args[0]).c_str()));
+  }
+  int arity() override { return 1; }
+};
+
 Evaluator::Evaluator() {
-  globals = new Environment();
+  globals = std::make_shared<Environment>();
   globals->define("clock", Object(FUNCTION, new Clock()));
+  globals->define("str", Object(FUNCTION, new ToString()));
   env = globals;
 }
 
-Evaluator::~Evaluator() { delete globals; }
-
 // TODO(kartikarcot): take ownwership of these statements
 // and release them appropriately
-void Evaluator::eval(std::vector<Stmt *> stmts) {
+void Evaluator::eval(std::vector<std::shared_ptr<Stmt>> &&stmts) {
+  // concatenate stmts_ and stmts
+  stmts_.insert(stmts_.end(), stmts.begin(), stmts.end());
   for (const auto &stmt : stmts) {
     if (stmt == nullptr) {
       CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
@@ -101,12 +118,18 @@ static inline Object handle_plus(const Object &left_val,
                                  const Object &right_val) {
   // for now we handle only the addition of numbers
   ObjectType floaty = FLOAT;
-  if (!is_same_type(left_val, right_val, &floaty)) {
-    return Object();
+  ObjectType stringy = STR;
+  if (is_same_type(left_val, right_val, &floaty)) {
+    float &value1 = *((float *)left_val.val);
+    float &value2 = *((float *)right_val.val);
+    return {FLOAT, new float(value1 + value2)};
   }
-  float &value1 = *((float *)left_val.val);
-  float &value2 = *((float *)right_val.val);
-  return {FLOAT, new float(value1 + value2)};
+  if (is_same_type(left_val, right_val, &stringy)) {
+    std::string result =
+        Object::object_to_str(left_val) + Object::object_to_str(right_val);
+    return {STR, strdup(result.c_str())};
+  }
+  return Object();
 }
 
 static inline Object handle_minus(const Object &left_val,
@@ -262,8 +285,8 @@ static inline Object handle_less_equal(const Object &left_val,
   }
 }
 
-Object Evaluator::visit_unary(Unary *u) {
-  const Object &value = visit(u->right);
+Object Evaluator::visit_unary(const Unary *u) {
+  const Object &value = visit(u->right.get());
   if (value.type == UNDEFINED) {
     // propagate the undefined upwards
     return value;
@@ -294,7 +317,7 @@ Object Evaluator::visit_unary(Unary *u) {
   return Object();
 }
 
-static bool literal_2_object(Literal *l, Object &obj) {
+static bool literal_2_object(const Literal *l, Object &obj) {
   switch (l->value->token_type_) {
   case NUMBER: {
     obj.type = FLOAT;
@@ -324,7 +347,7 @@ static bool literal_2_object(Literal *l, Object &obj) {
   return false;
 }
 
-Object Evaluator::visit_literal(Literal *l) {
+Object Evaluator::visit_literal(const Literal *l) {
   Object obj;
   if (!literal_2_object(l, obj)) {
     char error_str[60];
@@ -336,12 +359,12 @@ Object Evaluator::visit_literal(Literal *l) {
   return obj;
 }
 
-Object Evaluator::visit_binary(Binary *b) {
-  const Object &left_val = visit(b->left);
+Object Evaluator::visit_binary(const Binary *b) {
+  const Object &left_val = visit(b->left.get());
   if (left_val.type == UNDEFINED) {
     return left_val;
   }
-  const Object &right_val = visit(b->right);
+  const Object &right_val = visit(b->right.get());
   if (right_val.type == UNDEFINED) {
     return right_val;
   }
@@ -393,35 +416,66 @@ Object Evaluator::visit_binary(Binary *b) {
   }
 }
 
-Object Evaluator::visit_variable(Variable *v) {
-  Object *obj_ptr = env->get(*v->name);
+Object *Evaluator::lookup_variable(const Token *name, const Expr *expr) {
+  if (locals.find(expr) != locals.end()) {
+    int distance = locals[expr];
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "Looking up variable %s at distance %d",
+               name->literal_string.c_str(), distance);
+    return env->get_at(distance, name->literal_string);
+  } else {
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "Looking up variable %s at global scope",
+               name->literal_string.c_str());
+    return globals->get(name->literal_string);
+  }
+}
+
+Object Evaluator::visit_variable(const Variable *v) {
+  Object *obj_ptr = lookup_variable(v->name.get(), v);
   if (obj_ptr != nullptr) {
     return *obj_ptr;
   }
   report("Variable " + v->name->literal_string + " is not defined", "",
          v->name->line_no);
+
+  CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+             "Lookup failed with Environment:\n%s", this->env->print().c_str());
   return Object();
 }
 
-Object Evaluator::visit_assign(Assign *a) {
-  const Object &obj = visit(a->value);
+Object Evaluator::visit_assign(const Assign *a) {
+  const Object &obj = visit(a->value.get());
   if (obj.type == UNDEFINED) {
+    report("Could not evaluate the value of the assignment", "",
+           a->value->line_no);
     return obj;
   }
-  bool ret = env->assign(a->name->literal_string, obj);
-  if (!ret) {
-    report("Variable " + a->name->literal_string + " is not defined", "",
-           a->name->line_no);
-    return Object();
+  if (locals.find(a) != locals.end()) {
+    int distance = locals[a];
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "[Assign] Looking up variable %s at distance %d",
+               a->name->literal_string.c_str(), distance);
+    bool ret = env->assign_at(distance, a->name->literal_string, obj);
+    return obj;
+  } else {
+    CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
+               "[Assign] Looking up variable %s at global scope",
+               a->name->literal_string.c_str());
+    bool ret = globals->assign(a->name->literal_string, obj);
+    return obj;
   }
-  return obj;
+  report("Variable " + a->name->literal_string +
+             " is not defined to be assigned to",
+         "", a->name->line_no);
+  return Object();
 }
 
-Object Evaluator::visit_logical(Logical *l) {
+Object Evaluator::visit_logical(const Logical *l) {
   char error_str[60];
   snprintf(error_str, 60, "Could not evaluate the logical literal: %s",
            l->op->literal_string.c_str());
-  Object l_res = visit(l->left);
+  Object l_res = visit(l->left.get());
   if (l_res.type == UNDEFINED) {
     error(error_str, l->op->line_no);
     return l_res;
@@ -433,7 +487,7 @@ Object Evaluator::visit_logical(Logical *l) {
   if (!l_truthy && l->op->token_type_ == AND) {
     return Object(BOOL, new bool(false));
   }
-  Object r_res = visit(l->right);
+  Object r_res = visit(l->right.get());
   if (r_res.type == UNDEFINED) {
     error(error_str, l->op->line_no);
     return r_res;
@@ -448,48 +502,48 @@ Object Evaluator::visit_logical(Logical *l) {
   return Object(BOOL, new bool(false));
 }
 
-Object Evaluator::visit(Expr *e) {
+Object Evaluator::visit(const Expr *e) {
   PrettyPrinter p;
   CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL, "Visiting Expression: %s",
              p.paranthesize(e).c_str());
-  Binary *b = nullptr;
-  b = dynamic_cast<Binary *>(e);
+  const Binary *b = nullptr;
+  b = dynamic_cast<const Binary *>(e);
   if (b != nullptr) {
     return visit_binary(b);
   }
-  Unary *u = nullptr;
-  u = dynamic_cast<Unary *>(e);
+  const Unary *u = nullptr;
+  u = dynamic_cast<const Unary *>(e);
   if (u != nullptr) {
     return visit_unary(u);
   }
-  Literal *l = nullptr;
-  l = dynamic_cast<Literal *>(e);
+  const Literal *l = nullptr;
+  l = dynamic_cast<const Literal *>(e);
   if (l != nullptr) {
     return visit_literal(l);
   }
-  Grouping *g = nullptr;
-  g = dynamic_cast<Grouping *>(e);
+  const Grouping *g = nullptr;
+  g = dynamic_cast<const Grouping *>(e);
   if (g != nullptr) {
-    return visit(g->expression);
+    return visit(g->expression.get());
   }
-  Variable *v = nullptr;
-  v = dynamic_cast<Variable *>(e);
+  const Variable *v = nullptr;
+  v = dynamic_cast<const Variable *>(e);
   if (v != nullptr) {
     return visit_variable(v);
   }
-  Assign *a = nullptr;
-  a = dynamic_cast<Assign *>(e);
+  const Assign *a = nullptr;
+  a = dynamic_cast<const Assign *>(e);
   if (a != nullptr) {
     return visit_assign(a);
   }
 
-  Logical *lo = nullptr;
-  lo = dynamic_cast<Logical *>(e);
+  const Logical *lo = nullptr;
+  lo = dynamic_cast<const Logical *>(e);
   if (lo != nullptr) {
     return visit_logical(lo);
   }
-  Call *c = nullptr;
-  c = dynamic_cast<Call *>(e);
+  const Call *c = nullptr;
+  c = dynamic_cast<const Call *>(e);
   if (c != nullptr) {
     return visit_call(c);
   }
@@ -503,75 +557,75 @@ Object Evaluator::visit(Expr *e) {
   return Object();
 }
 
-void Evaluator::visit_block(Block *b) {
+void Evaluator::visit_block(const Block *b) {
   assert(b != nullptr);
-  Environment *old_env = env;
+  auto old_env = env;
   {
-    this->env = new Environment(old_env);
-    for (Stmt *st : b->statements) {
+    this->env = std::make_shared<Environment>(old_env.get());
+    for (auto st : b->statements) {
       assert(st != nullptr);
-      visit(st);
+      visit(st.get());
     }
   }
   this->env = old_env;
 }
 
-void Evaluator::visit(Stmt *s) {
-  Print *p = nullptr;
-  p = dynamic_cast<Print *>(s);
+void Evaluator::visit(const Stmt *s) {
+  const Print *p = nullptr;
+  p = dynamic_cast<const Print *>(s);
   if (p != nullptr) {
     // construct a string of all the results of the expressions
     std::string result;
-    for (Expr *e : p->expressions) {
-      result += Object::object_to_str(visit(e));
+    for (auto e : p->expressions) {
+      result += Object::object_to_str(visit(e.get()));
       result += " ";
     }
     // do something
     printf("%s\n", result.c_str());
     return;
   }
-  Expression *e = nullptr;
-  e = dynamic_cast<Expression *>(s);
+  const Expression *e = nullptr;
+  e = dynamic_cast<const Expression *>(s);
   if (e != nullptr) {
     // do something
     PrettyPrinter p;
-    visit(e->expression);
+    visit(e->expression.get());
     return;
   }
-  Var *v = nullptr;
-  v = dynamic_cast<Var *>(s);
+  const Var *v = nullptr;
+  v = dynamic_cast<const Var *>(s);
   if (v != nullptr) {
     // do something
-    const Object &value = visit(v->initializer);
+    const Object &value = visit(v->initializer.get());
     env->define(v->name->literal_string, std::move(value));
     return;
   }
-  Block *b = nullptr;
-  b = dynamic_cast<Block *>(s);
+  const Block *b = nullptr;
+  b = dynamic_cast<const Block *>(s);
   if (b != nullptr) {
     visit_block(b);
     return;
   }
-  If *i = nullptr;
-  i = dynamic_cast<If *>(s);
+  const If *i = nullptr;
+  i = dynamic_cast<const If *>(s);
   if (i != nullptr) {
     visit_if(i);
     return;
   }
-  While *w = nullptr;
-  w = dynamic_cast<While *>(s);
+  const While *w = nullptr;
+  w = dynamic_cast<const While *>(s);
   if (w != nullptr) {
     visit_while(w);
     return;
   }
-  Function *f = nullptr;
-  f = dynamic_cast<Function *>(s);
+  const Function *f = nullptr;
+  f = dynamic_cast<const Function *>(s);
   if (f != nullptr) {
     visit_function(f);
     return;
   }
-  Return *r = nullptr;
-  r = dynamic_cast<Return *>(s);
+  const Return *r = nullptr;
+  r = dynamic_cast<const Return *>(s);
   if (r != nullptr) {
     visit_return(r);
     return;
@@ -584,30 +638,30 @@ void Evaluator::visit(Stmt *s) {
              "to askarthikkumar@gmail.com");
 }
 
-void Evaluator::visit_if(If *i) {
-  Object o = visit(i->condition);
+void Evaluator::visit_if(const If *i) {
+  Object o = visit(i->condition.get());
   if (o.type == UNDEFINED) {
     report("Could not evaluate the condition for the if block", "",
            i->condition->line_no);
     return;
   }
   if (is_truthy(o)) {
-    visit(i->thenBranch);
+    visit(i->thenBranch.get());
   } else if (i->elseBranch != nullptr) {
-    visit(i->elseBranch);
+    visit(i->elseBranch.get());
   }
 }
 
-void Evaluator::visit_while(While *w) {
-  Object o = visit(w->condition);
+void Evaluator::visit_while(const While *w) {
+  Object o = visit(w->condition.get());
   if (o.type == UNDEFINED) {
     report("Could not evaluate the expression in the while condition", "",
            w->condition->line_no);
     return;
   }
   while (is_truthy(o)) {
-    visit(w->body);
-    o = visit(w->condition);
+    visit(w->body.get());
+    o = visit(w->condition.get());
     if (o.type == UNDEFINED) {
       report("Could not evaluate the expression in the while condition", "",
              w->condition->line_no);
@@ -616,12 +670,12 @@ void Evaluator::visit_while(While *w) {
   }
 }
 
-Object Evaluator::visit_call(Call *c) {
+Object Evaluator::visit_call(const Call *c) {
   // get the function object
-  Object callee = visit(c->callee);
+  Object callee = visit(c->callee.get());
   std::vector<Object> args;
-  for (Expr *e : c->arguments) {
-    Object o = visit(e);
+  for (auto e : c->arguments) {
+    Object o = visit(e.get());
     if (o.type == UNDEFINED) {
       report("Could not evaluate the argument", "", e->line_no);
       return o;
@@ -648,13 +702,13 @@ Object Evaluator::visit_call(Call *c) {
   return func->call(args, this);
 }
 
-void Evaluator::execute_block(std::vector<Stmt *> statements,
-                              Environment *env) {
-  Environment *old_env = this->env;
+void Evaluator::execute_block(std::vector<std::shared_ptr<Stmt>> statements,
+                              std::shared_ptr<Environment> clos_env) {
+  auto old_env = this->env;
   try {
-    this->env = new Environment(env);
-    for (Stmt *s : statements) {
-      visit(s);
+    this->env = clos_env;
+    for (auto s : statements) {
+      visit(s.get());
     }
   } catch (Object &o) {
     CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL,
@@ -665,17 +719,20 @@ void Evaluator::execute_block(std::vector<Stmt *> statements,
   this->env = old_env;
 }
 
-void Evaluator::visit_function(Function *f) {
-  auto func = new LoxFunction(f, {});
+void Evaluator::visit_function(const Function *f) {
+  auto func = new LoxFunction(f, env);
   env->define(f->name->literal_string, Object(FUNCTION, func));
-  func->closure = env;
   return;
 }
 
-void Evaluator::visit_return(Return *r) {
+void Evaluator::visit_return(const Return *r) {
   Object value;
   if (r->value != nullptr) {
-    value = visit(r->value);
+    value = visit(r->value.get());
   }
   throw value;
 }
+
+void Evaluator::resolve(const Expr *e, int depth) { locals.insert({e, depth}); }
+
+Evaluator::~Evaluator() {}

@@ -1,14 +1,13 @@
 #pragma once
 #include "eval.h"
 #include "parser.h"
+#include "resolver.h"
 #include "scanner.h"
 #include <string>
 
 class Lox {
 public:
   bool had_error_ = false;
-  Scanner scanner_;
-  Parser parser_;
   Evaluator eval_;
 
   void error(const std::string &message, int line_no);

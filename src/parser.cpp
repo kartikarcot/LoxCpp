@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "printer.h"
 #include "token.h"
+#include <memory>
 
 /*
 expression     -> assignment ;
@@ -36,20 +37,20 @@ int Parser::get_current_line() {
   return tokens_[current_].line_no;
 }
 
-Expr *Parser::logic_or() {
-  Expr *l_and = logic_and();
+std::shared_ptr<Expr> Parser::logic_or() {
+  auto l_and = logic_and();
   if (l_and == nullptr) {
     return nullptr;
   }
-  Token *op = new Token();
+  auto op = std::make_shared<Token>();
   if (peek(*op) && op->token_type_ == OR) {
     Token _;
     advance(_);
-    Expr *r_and = logic_and();
+    auto r_and = logic_and();
     if (r_and == nullptr) {
       return nullptr;
     }
-    Logical *l = new Logical();
+    auto l = std::make_shared<Logical>();
     l->left = l_and;
     l->op = op;
     l->right = r_and;
@@ -60,21 +61,21 @@ Expr *Parser::logic_or() {
   }
 }
 
-Expr *Parser::logic_and() {
-  Expr *l_eq = equality();
+std::shared_ptr<Expr> Parser::logic_and() {
+  std::shared_ptr<Expr> l_eq = equality();
   if (l_eq == nullptr) {
     return nullptr;
   }
-  Token *op = new Token();
+  auto op = std::make_shared<Token>();
   ;
   if (peek(*op) && op->token_type_ == AND) {
     Token _;
     advance(_);
-    Expr *r_eq = equality();
+    std::shared_ptr<Expr> r_eq = equality();
     if (r_eq == nullptr) {
       return nullptr;
     }
-    Logical *l = new Logical();
+    auto l = std::make_shared<Logical>();
     l->left = l_eq;
     l->op = op;
     l->right = r_eq;
@@ -85,10 +86,10 @@ Expr *Parser::logic_and() {
   }
 }
 
-Expr *Parser::assignment() {
+std::shared_ptr<Expr> Parser::assignment() {
   // try to match an equality or other subsumed
   // lower level expressions
-  Expr *e = logic_or();
+  std::shared_ptr<Expr> e = logic_or();
   if (e == nullptr) {
     return nullptr;
   }
@@ -97,18 +98,18 @@ Expr *Parser::assignment() {
     // assignable target. Check if the lhs evaluates to a variable
     // Right now, the only valid target is a simple variable expression, but
     // we’ll add fields later.
-    Variable *v = dynamic_cast<Variable *>(e);
+    std::shared_ptr<Variable> v = dynamic_pointer_cast<Variable>(e);
     if (v == nullptr) {
       // this is bad call a parser error
       report("Invalid assignment target.", "", e->line_no);
       return nullptr;
     }
     // otherwise this means maybe there is a valid expression on the other side
-    Expr *eval_expr = assignment();
+    std::shared_ptr<Expr> eval_expr = assignment();
     if (eval_expr == nullptr) {
       return nullptr;
     }
-    Assign *a = new Assign();
+    auto a = std::make_shared<Assign>();
     a->name = v->name;
     a->value = eval_expr;
     a->line_no = e->line_no;
@@ -118,15 +119,14 @@ Expr *Parser::assignment() {
   }
 }
 
-Expr *Parser::expression() {
-  Expr *e = assignment();
+std::shared_ptr<Expr> Parser::expression() {
+  std::shared_ptr<Expr> e = assignment();
   Token t;
   return e;
 }
 
-Expr *Parser::equality() {
-  Expr *expr;
-  expr = comparison();
+std::shared_ptr<Expr> Parser::equality() {
+  auto expr = comparison();
   if (expr == nullptr) {
     return nullptr;
   }
@@ -136,25 +136,24 @@ Expr *Parser::equality() {
       report("Issue parsing equality", "", tokens_[current_].line_no);
       return nullptr;
     }
-    Expr *right = comparison();
+    std::shared_ptr<Expr> right = comparison();
     if (right == nullptr) {
       return nullptr;
     }
-    Expr *new_expr = new Binary();
-    static_cast<Binary *>(new_expr)->left = expr;
-    static_cast<Binary *>(new_expr)->op = new Token(op);
-    static_cast<Binary *>(new_expr)->right = right;
+    std::shared_ptr<Expr> new_expr = std::make_shared<Binary>();
+    static_pointer_cast<Binary>(new_expr)->left = expr;
+    static_pointer_cast<Binary>(new_expr)->op = std::make_shared<Token>(op);
+    static_pointer_cast<Binary>(new_expr)->right = right;
     expr = new_expr;
     expr->line_no = op.line_no;
   }
   return expr;
 }
 
-Expr *Parser::comparison() {
-  Expr *expr;
-  expr = term();
-  if (expr == NULL) {
-    return NULL;
+std::shared_ptr<Expr> Parser::comparison() {
+  auto expr = term();
+  if (expr == nullptr) {
+    return nullptr;
   }
   while (match({GREATER, GREATER_EQUAL, LESS, LESS_EQUAL})) {
     Token op;
@@ -162,14 +161,14 @@ Expr *Parser::comparison() {
       report("Issue parsing comparison", "", tokens_[current_].line_no);
       return nullptr;
     }
-    Expr *right = term();
+    auto right = term();
     if (right == nullptr) {
       return nullptr;
     }
-    Expr *new_expr = new Binary();
-    static_cast<Binary *>(new_expr)->left = expr;
-    static_cast<Binary *>(new_expr)->op = new Token(op);
-    static_cast<Binary *>(new_expr)->right = right;
+    std::shared_ptr<Expr> new_expr = std::make_shared<Binary>();
+    static_pointer_cast<Binary>(new_expr)->left = expr;
+    static_pointer_cast<Binary>(new_expr)->op = std::make_shared<Token>(op);
+    static_pointer_cast<Binary>(new_expr)->right = right;
     expr = new_expr;
     expr->line_no = op.line_no;
   }
@@ -177,9 +176,8 @@ Expr *Parser::comparison() {
   return expr;
 }
 
-Expr *Parser::term() {
-  Expr *expr;
-  expr = factor();
+std::shared_ptr<Expr> Parser::term() {
+  auto expr = factor();
   if (expr == nullptr) {
     return nullptr;
   }
@@ -189,24 +187,22 @@ Expr *Parser::term() {
       report("Issue parsing term", "", tokens_[current_].line_no);
       return nullptr;
     }
-    Expr *right = factor();
+    auto right = factor();
     if (right == nullptr) {
       return nullptr;
     }
-    Expr *new_expr = new Binary();
-    static_cast<Binary *>(new_expr)->left = expr;
-    static_cast<Binary *>(new_expr)->op = new Token(op);
-    static_cast<Binary *>(new_expr)->right = right;
+    auto new_expr = std::make_shared<Binary>();
+    static_pointer_cast<Binary>(new_expr)->left = expr;
+    static_pointer_cast<Binary>(new_expr)->op = std::make_shared<Token>(op);
+    static_pointer_cast<Binary>(new_expr)->right = right;
     expr = new_expr;
     expr->line_no = op.line_no;
   }
-
   return expr;
 }
 
-Expr *Parser::factor() {
-  Expr *expr;
-  expr = unary();
+std::shared_ptr<Expr> Parser::factor() {
+  auto expr = unary();
   if (expr == nullptr) {
     return nullptr;
   }
@@ -216,43 +212,42 @@ Expr *Parser::factor() {
       report("Issue parsing factor", "", tokens_[current_].line_no);
       return nullptr;
     }
-    Expr *right = unary();
+    auto right = unary();
     if (right == nullptr) {
       return nullptr;
     }
-    Expr *new_expr = new Binary();
-    static_cast<Binary *>(new_expr)->left = expr;
-    static_cast<Binary *>(new_expr)->op = new Token(op);
-    static_cast<Binary *>(new_expr)->right = right;
+    auto new_expr = std::make_shared<Binary>();
+    static_pointer_cast<Binary>(new_expr)->left = expr;
+    static_pointer_cast<Binary>(new_expr)->op = std::make_shared<Token>(op);
+    static_pointer_cast<Binary>(new_expr)->right = right;
     expr = new_expr;
     expr->line_no = op.line_no;
   }
-
   return expr;
 }
 
-Expr *Parser::unary() {
+std::shared_ptr<Expr> Parser::unary() {
   if (match({BANG, MINUS})) {
     Token op;
     if (!previous(op)) {
       report("Issue parsing code", "", tokens_[current_].line_no);
       return nullptr;
     }
-    Expr *op_expr = unary();
-    Expr *expr = new Unary();
-    static_cast<Unary *>(expr)->op = new Token(op);
-    static_cast<Unary *>(expr)->right = op_expr;
+    auto op_expr = unary();
+    auto expr = std::make_shared<Unary>();
+    static_pointer_cast<Unary>(expr)->op = std::make_shared<Token>(op);
+    static_pointer_cast<Unary>(expr)->right = op_expr;
     expr->line_no = op.line_no;
     return expr;
   }
   return call();
 }
 
-Expr *Parser::finish_call(Expr *expr) {
+std::shared_ptr<Expr> Parser::finish_call(std::shared_ptr<Expr> expr) {
   // we have a left paren
   // we need to parse the arguments if any exist
   // and then the right paren
-  std::vector<Expr *> args;
+  std::vector<std::shared_ptr<Expr>> args;
   Token t;
   if (!peek(t)) {
     report("Issue parsing call", "", get_current_line());
@@ -260,7 +255,7 @@ Expr *Parser::finish_call(Expr *expr) {
   }
   if (t.token_type_ != RIGHT_PAREN) {
     do {
-      Expr *arg = assignment();
+      auto arg = assignment();
       if (arg == nullptr) {
         return nullptr;
       }
@@ -279,15 +274,15 @@ Expr *Parser::finish_call(Expr *expr) {
     return nullptr;
   }
   // construct the call object
-  auto call = new Call();
+  auto call = std::make_shared<Call>();
   call->callee = expr;
   call->arguments = args;
-  call->paren = new Token(t);
+  call->paren = std::make_shared<Token>(t);
   return call;
 }
 
-Expr *Parser::call() {
-  Expr *expr = primary();
+std::shared_ptr<Expr> Parser::call() {
+  std::shared_ptr<Expr> expr = primary();
   if (expr == nullptr) {
     return nullptr;
   }
@@ -302,10 +297,10 @@ Expr *Parser::call() {
   return expr;
 }
 
-Expr *Parser::primary() {
+std::shared_ptr<Expr> Parser::primary() {
   if (match({LEFT_PAREN})) {
     // if a grouped then start from the top
-    Expr *expr = assignment();
+    std::shared_ptr<Expr> expr = assignment();
     if (!match({RIGHT_PAREN})) {
       report("Expected )", "", get_current_line());
       return nullptr;
@@ -316,9 +311,9 @@ Expr *Parser::primary() {
     return expr;
   } else if (match({IDENTIFIER})) {
     // if identifier then create a variable node
-    Expr *expr = new Variable();
-    static_cast<Variable *>(expr)->name = new Token();
-    previous(*static_cast<Variable *>(expr)->name);
+    auto expr = std::make_shared<Variable>();
+    static_pointer_cast<Variable>(expr)->name = std::make_shared<Token>();
+    previous(*static_pointer_cast<Variable>(expr)->name);
     expr->line_no = get_current_line();
     return expr;
   } else {
@@ -332,8 +327,8 @@ Expr *Parser::primary() {
       }
       return nullptr;
     }
-    Expr *expr = new Literal();
-    static_cast<Literal *>(expr)->value = new Token(t);
+    auto expr = std::make_shared<Literal>();
+    static_pointer_cast<Literal>(expr)->value = std::make_shared<Token>(t);
     expr->line_no = get_current_line();
     advance(t);
     return expr;
@@ -423,9 +418,9 @@ void Parser::synchronize() {
   }
 }
 
-Expr *Parser::parse() { return expression(); }
+std::shared_ptr<Expr> Parser::parse() { return expression(); }
 
-Stmt *Parser::parse_statement() {
+std::shared_ptr<Stmt> Parser::parse_statement() {
   // consume statement
   Token t;
   peek(t);
@@ -437,11 +432,11 @@ Stmt *Parser::parse_statement() {
       report("Expected (", "", get_current_line());
       return nullptr;
     }
-    std::vector<Expr *> expressions;
+    std::vector<std::shared_ptr<Expr>> expressions;
     // read a list of comma seperated expressions
     while (!match({RIGHT_PAREN})) {
       // read a single expression
-      Expr *expr = expression();
+      auto expr = expression();
       if (!expr) {
         return nullptr;
       }
@@ -461,7 +456,7 @@ Stmt *Parser::parse_statement() {
              get_current_line());
       return nullptr;
     }
-    Print *p = new Print();
+    auto p = std::make_shared<Print>();
     p->expressions = expressions;
     p->line_no = t.line_no;
     return p;
@@ -471,11 +466,11 @@ Stmt *Parser::parse_statement() {
     // consume left brace
     Token _;
     advance(_);
-    std::vector<Stmt *> stmts;
+    std::vector<std::shared_ptr<Stmt>> stmts;
     if (!parse_block(stmts)) {
       return nullptr;
     }
-    Block *b = new Block();
+    auto b = std::make_shared<Block>();
     b->statements = std::move(stmts);
     b->line_no = t.line_no;
     return b;
@@ -504,22 +499,24 @@ Stmt *Parser::parse_statement() {
   }
   default: {
     auto expr_st = parse_expression_statement();
-    expr_st->line_no = t.line_no;
+    if (expr_st) {
+      expr_st->line_no = t.line_no;
+    }
     return expr_st;
   }
   }
 }
 
-Stmt *Parser::parse_var_declaration() {
-  Token *t = new Token();
+std::shared_ptr<Stmt> Parser::parse_var_declaration() {
+  auto t = std::make_shared<Token>();
   if (!advance(*t) || t->token_type_ != IDENTIFIER) {
     report("Missing/Invalid identifier in variable declaration statement", "",
            get_current_line());
   }
   if (match({EQUAL})) {
-    Expr *ex = expression();
+    auto ex = expression();
     if (ex) {
-      Var *var = new Var();
+      auto var = std::make_shared<Var>();
       var->name = t;
       var->initializer = ex;
       if (match({SEMICOLON})) {
@@ -537,12 +534,10 @@ Stmt *Parser::parse_var_declaration() {
     report("Missing = in variable declaration statement", "",
            get_current_line());
   }
-  // if we reached here we should delete heap variable that was not used
-  delete t;
   return nullptr;
 }
 
-Stmt *Parser::parse_function() {
+std::shared_ptr<Stmt> Parser::parse_function() {
   Token t;
   if (peek(t) && t.token_type_ == IDENTIFIER) {
     advance(t);
@@ -557,7 +552,7 @@ Stmt *Parser::parse_function() {
            get_current_line());
     return nullptr;
   }
-  std::vector<Token *> params;
+  std::vector<std::shared_ptr<Token>> params;
   while (!match({RIGHT_PAREN})) {
     Token t;
     if (!peek(t) || t.token_type_ != IDENTIFIER) {
@@ -566,7 +561,7 @@ Stmt *Parser::parse_function() {
       return nullptr;
     }
     advance(t);
-    params.push_back(new Token(t));
+    params.push_back(std::make_shared<Token>(t));
     if (params.size() > kMaxArgs) {
       report("Too many arguments in function declaration statement", "",
              get_current_line());
@@ -594,26 +589,26 @@ Stmt *Parser::parse_function() {
            get_current_line());
     return nullptr;
   }
-  std::vector<Stmt *> body;
+  std::vector<std::shared_ptr<Stmt>> body;
   if (!parse_block(body)) {
     // cast to Block and iterate over the statements
     return nullptr;
   }
 
-  Function *f = new Function();
-  f->name = new Token(name);
+  auto f = std::make_shared<Function>();
+  f->name = std::make_shared<Token>(name);
   f->params = params;
   f->body = body;
   return f;
 }
 
-Stmt *Parser::parse_declaration() {
+std::shared_ptr<Stmt> Parser::parse_declaration() {
   // We seperate the declaration type statements from other statements because
   // we don't want to allow certain kinds of syntax like this:
   // if (monday) var beverage = "espresso"; Here the var declaration is
   // just inside an if block. That could be allowed but is pointless and
   // confusing to be allowed
-  Stmt *s = nullptr;
+  std::shared_ptr<Stmt> s = nullptr;
   // if we match a var start point then we are a variable declaration
   if (match({VAR})) {
     s = parse_var_declaration();
@@ -631,7 +626,7 @@ Stmt *Parser::parse_declaration() {
   return s;
 }
 
-bool Parser::parse_block(std::vector<Stmt *> &statements) {
+bool Parser::parse_block(std::vector<std::shared_ptr<Stmt>> &statements) {
   Token t;
   // we have tokens to parse and it's not a right paren
   while (!is_at_end() && peek(t) && t.token_type_ != RIGHT_BRACE) {
@@ -648,8 +643,8 @@ bool Parser::parse_block(std::vector<Stmt *> &statements) {
   return true;
 }
 
-std::vector<Stmt *> Parser::parse_stmts() {
-  std::vector<Stmt *> statements;
+std::vector<std::shared_ptr<Stmt>> Parser::parse_stmts() {
+  std::vector<std::shared_ptr<Stmt>> statements;
   while (!is_at_end()) {
     auto expr = parse_declaration();
     if (!expr) {
@@ -661,14 +656,14 @@ std::vector<Stmt *> Parser::parse_stmts() {
   return statements;
 }
 
-Stmt *Parser::parse_if() {
+std::shared_ptr<Stmt> Parser::parse_if() {
   Token t;
   advance(t);
   if (!match({LEFT_PAREN})) {
     report("Expect '(' after 'if'.", "", t.line_no);
     return nullptr;
   }
-  Expr *e = expression();
+  std::shared_ptr<Expr> e = expression();
   if (e == nullptr) {
     return nullptr;
   }
@@ -676,32 +671,32 @@ Stmt *Parser::parse_if() {
     report("Expect ')' after 'if' condition", "", get_current_line());
     return nullptr;
   }
-  Stmt *thenBranch = parse_statement();
+  std::shared_ptr<Stmt> thenBranch = parse_statement();
   if (thenBranch == nullptr) {
     return thenBranch;
   }
-  Stmt *elseBranch = nullptr;
+  std::shared_ptr<Stmt> elseBranch = nullptr;
   if (match({ELSE})) {
     elseBranch = parse_statement();
     if (elseBranch == nullptr) {
       return elseBranch;
     }
   }
-  If *i = new If();
+  auto i = std::make_shared<If>();
   i->condition = e;
   i->thenBranch = thenBranch;
   i->elseBranch = elseBranch;
   return i;
 }
 
-Stmt *Parser::parse_while() {
+std::shared_ptr<Stmt> Parser::parse_while() {
   Token t;
   advance(t);
   if (!match({LEFT_PAREN})) {
     report("Expect '(' after 'while'.", "", get_current_line());
     return nullptr;
   }
-  Expr *e = expression();
+  std::shared_ptr<Expr> e = expression();
   if (e == nullptr) {
     report("Expression inside while did not get evaluated", "",
            get_current_line());
@@ -711,24 +706,24 @@ Stmt *Parser::parse_while() {
     report("Expect ')' after 'while' condition", "", get_current_line());
     return nullptr;
   }
-  Stmt *whileBranch = parse_statement();
+  std::shared_ptr<Stmt> whileBranch = parse_statement();
   if (whileBranch == nullptr) {
     return whileBranch;
   }
-  While *w = new While();
+  auto w = std::make_shared<While>();
   w->condition = e;
   w->body = whileBranch;
   return w;
 }
 
-Stmt *Parser::parse_for() {
+std::shared_ptr<Stmt> Parser::parse_for() {
   Token t;
   advance(t);
   if (!match({LEFT_PAREN})) {
     report("Expect '(' after 'for'.", "", get_current_line());
     return nullptr;
   }
-  Stmt *initializer = nullptr;
+  std::shared_ptr<Stmt> initializer = nullptr;
   if (match({SEMICOLON})) {
     initializer = nullptr;
   } else if (match({VAR})) {
@@ -740,7 +735,7 @@ Stmt *Parser::parse_for() {
     report("Could not parse initializer for for loop", "", get_current_line());
     return nullptr;
   }
-  Expr *condition = nullptr;
+  std::shared_ptr<Expr> condition = nullptr;
   if (!match({SEMICOLON})) {
     condition = expression();
     if (condition == nullptr) {
@@ -752,7 +747,7 @@ Stmt *Parser::parse_for() {
       return nullptr;
     }
   }
-  Expr *increment = nullptr;
+  std::shared_ptr<Expr> increment = nullptr;
   if (!match({RIGHT_PAREN})) {
     increment = expression();
     if (increment == nullptr) {
@@ -764,45 +759,46 @@ Stmt *Parser::parse_for() {
       return nullptr;
     }
   }
-  Stmt *body = parse_statement();
+  std::shared_ptr<Stmt> body = parse_statement();
   if (body == nullptr) {
     return body;
   }
   if (increment != nullptr) {
-    std::vector<Stmt *> body_stmts;
+    std::vector<std::shared_ptr<Stmt>> body_stmts;
     body_stmts.push_back(body);
-    Expression *ex = new Expression();
+    auto ex = std::make_shared<Expression>();
     ex->expression = increment;
     body_stmts.push_back(ex);
-    Block *b = new Block();
+    auto b = std::make_shared<Block>();
     b->statements = body_stmts;
     body = b;
   }
   if (condition == nullptr) {
-    condition = new Literal();
-    ((Literal *)condition)->value = new Token{FALSE, "false", 0, 0};
+    condition = std::make_shared<Literal>();
+    dynamic_pointer_cast<Literal>(condition)->value =
+        std::make_shared<Token>(Token{FALSE, "false", 0, 0});
   }
-  While *w = new While();
+  auto w = std::make_shared<While>();
   w->condition = condition;
   w->body = body;
   if (initializer != nullptr) {
-    std::vector<Stmt *> body_stmts;
+    std::vector<std::shared_ptr<Stmt>> body_stmts;
     body_stmts.push_back(initializer);
     body_stmts.push_back(w);
-    Block *b = new Block();
+    auto b = std::make_shared<Block>();
     b->statements = body_stmts;
     return b;
   }
   return w;
 }
 
-Stmt *Parser::parse_expression_statement() {
+std::shared_ptr<Stmt> Parser::parse_expression_statement() {
   // evaluate as an expression
-  Expr *expr = expression();
+  std::shared_ptr<Expr> expr = expression();
   if (!expr) {
     return nullptr;
   }
-  Expression *ex = new Expression();
+  auto ex = std::make_shared<Expression>();
   if (!match({SEMICOLON})) {
     report("Missing semicolon at the end of the statement", "",
            get_current_line());
@@ -812,22 +808,22 @@ Stmt *Parser::parse_expression_statement() {
   return ex;
 }
 
-Stmt *Parser::parse_return() {
+std::shared_ptr<Stmt> Parser::parse_return() {
   Token ret;
   previous(ret);
-  Expr *expr = nullptr;
+  std::shared_ptr<Expr> expr = nullptr;
   if (!match({SEMICOLON})) {
     expr = expression();
     PrettyPrinter p;
     CLog::FLog(LogLevel::DEBUG, LogCategory::PARSER, "%s",
-               p.paranthesize(expr).c_str());
+               p.paranthesize(expr.get()).c_str());
   }
   if (!match({SEMICOLON})) {
     report("Expect ';' after return value.", "", get_current_line());
     return nullptr;
   }
-  Return *r = new Return();
-  r->keyword = new Token(ret);
+  auto r = std::make_shared<Return>();
+  r->keyword = std::make_shared<Token>(ret);
   r->value = expr;
   return r;
 }

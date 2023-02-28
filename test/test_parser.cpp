@@ -45,7 +45,7 @@ TEST(ParserTest, test_parser_3) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<Print *>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<Print>(stmts[0]) != nullptr);
 }
 
 TEST(ParserTest, test_parser_4) {
@@ -70,7 +70,7 @@ TEST(ParserTest, test_parser_4) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 2);
-  EXPECT_TRUE(dynamic_cast<Print *>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<Print>(stmts[0]) != nullptr);
 }
 
 TEST(ParserTest, test_parser_5) {
@@ -88,10 +88,11 @@ TEST(ParserTest, test_parser_5) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<Var *>(stmts[0]) != nullptr);
-  EXPECT_TRUE(dynamic_cast<Var *>(stmts[0])->name->literal_string == "foo");
-  EXPECT_TRUE(dynamic_cast<Literal *>(
-                  dynamic_cast<Var *>(stmts[0])->initializer) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<Var>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<Var>(stmts[0])->name->literal_string ==
+              "foo");
+  EXPECT_TRUE(dynamic_pointer_cast<Literal>(
+                  dynamic_pointer_cast<Var>(stmts[0])->initializer) != nullptr);
 }
 
 TEST(ParserTest, test_parser_6) {
@@ -108,13 +109,13 @@ TEST(ParserTest, test_parser_6) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<Expression *>(stmts[0]) != nullptr);
-  EXPECT_TRUE(
-      dynamic_cast<Assign *>(dynamic_cast<Expression *>(stmts[0])->expression)
-          ->name->literal_string == "foo");
-  EXPECT_TRUE(dynamic_cast<Literal *>(
-                  dynamic_cast<Assign *>(
-                      dynamic_cast<Expression *>(stmts[0])->expression)
+  EXPECT_TRUE(dynamic_pointer_cast<Expression>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<Assign>(
+                  dynamic_pointer_cast<Expression>(stmts[0])->expression)
+                  ->name->literal_string == "foo");
+  EXPECT_TRUE(dynamic_pointer_cast<Literal>(
+                  dynamic_pointer_cast<Assign>(
+                      dynamic_pointer_cast<Expression>(stmts[0])->expression)
                       ->value)
                   ->value->token_type_ == TRUE);
 }
@@ -142,7 +143,7 @@ TEST(ParserTest, test_parser_7) {
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
   EXPECT_TRUE(stmts[0] != nullptr);
-  EXPECT_TRUE(dynamic_cast<Expression *>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<Expression>(stmts[0]) != nullptr);
 }
 
 TEST(ParserTest, test_parser_8) {
@@ -151,7 +152,7 @@ TEST(ParserTest, test_parser_8) {
       Token(IF, "if", nullptr, 0),
       Token(LEFT_PAREN, "(", nullptr, 0),
       Token(TRUE, "true", nullptr, 0),
-      Token(RIGHT_PAREN, ")", new float(12), 0),
+      Token(RIGHT_PAREN, ")", nullptr, 0),
       Token(LEFT_BRACE, "{", nullptr, 0),
       Token(NUMBER, "24", new float(24), 0),
       Token(STAR, "*", nullptr, 0),
@@ -172,7 +173,7 @@ TEST(ParserTest, test_parser_8) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<If *>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<If>(stmts[0]) != nullptr);
 }
 
 TEST(ParserTest, test_parser_9) {
@@ -183,7 +184,7 @@ TEST(ParserTest, test_parser_9) {
       Token(TRUE, "true", nullptr, 0),
       Token(AND, "and", nullptr, 0),
       Token(FALSE, "false", nullptr, 0),
-      Token(RIGHT_PAREN, ")", new float(12), 0),
+      Token(RIGHT_PAREN, ")", nullptr, 0),
       Token(LEFT_BRACE, "{", nullptr, 0),
       Token(NUMBER, "24", new float(24), 0),
       Token(STAR, "*", nullptr, 0),
@@ -205,8 +206,8 @@ TEST(ParserTest, test_parser_9) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<If *>(stmts[0]) != nullptr);
-  EXPECT_TRUE(dynamic_cast<If *>(stmts[0])->condition != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<If>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<If>(stmts[0])->condition != nullptr);
 }
 
 TEST(ParserTest, test_parser_10) {
@@ -217,7 +218,7 @@ TEST(ParserTest, test_parser_10) {
       Token(TRUE, "true", nullptr, 0),
       Token(OR, "or", nullptr, 0),
       Token(FALSE, "false", nullptr, 0),
-      Token(RIGHT_PAREN, ")", new float(12), 0),
+      Token(RIGHT_PAREN, ")", nullptr, 0),
       Token(LEFT_BRACE, "{", nullptr, 0),
       Token(NUMBER, "24", new float(24), 0),
       Token(STAR, "*", nullptr, 0),
@@ -239,8 +240,8 @@ TEST(ParserTest, test_parser_10) {
   p.init(tokens);
   auto stmts = p.parse_stmts();
   EXPECT_TRUE(stmts.size() == 1);
-  EXPECT_TRUE(dynamic_cast<If *>(stmts[0]) != nullptr);
-  EXPECT_TRUE(dynamic_cast<If *>(stmts[0])->condition != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<If>(stmts[0]) != nullptr);
+  EXPECT_TRUE(dynamic_pointer_cast<If>(stmts[0])->condition != nullptr);
 }
 
 int main(int argc, char **argv) {

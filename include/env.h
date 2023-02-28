@@ -5,10 +5,9 @@
 
 class Environment {
 private:
-  Environment *enclosing = nullptr;
-
 public:
   std::unordered_map<std::string, Object> env_map;
+  Environment *enclosing = nullptr;
 
 public:
   Environment() = default;
@@ -17,6 +16,8 @@ public:
   [[nodiscard]] bool assign(const std::string &name, const Object &value);
   Object *get(const Token &t);
   Object *get(const std::string &name);
+  Object *get_at(int distance, const std::string &name);
+  bool assign_at(int distance, const std::string &name, const Object &value);
   std::string print();
   ~Environment();
 };
