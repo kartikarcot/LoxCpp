@@ -602,6 +602,43 @@ std::shared_ptr<Stmt> Parser::parse_function() {
   return f;
 }
 
+std::shared_ptr<Stmt> Parser::parse_class() {
+  Token t;
+  if (!peek(t) || t.token_type_ != IDENTIFIER) {
+    report("Missing/Invalid identifier in class declaration statement", "",
+           get_current_line());
+    return nullptr;
+  }
+  advance(t);
+  auto name = std::make_shared<Token>(t);
+  // consume the left brace
+  if (!match({LEFT_BRACE})) {
+    report("Missing { in class declaration statement", "", get_current_line());
+    return nullptr;
+  }
+  std::vector<std::shared_ptr<Stmt>> methods;
+  Token t_right_brace;
+  while (!is_at_end() && peek(t_right_brace) &&
+         t_right_brace.token_type_ != RIGHT_BRACE) {
+    auto method = parse_function();
+    if (method) {
+      methods.push_back(method);
+    } else {
+      report("Missing/Invalid method in class declaration statement", "",
+             get_current_line());
+      return nullptr;
+    }
+  }
+  if (!match({RIGHT_BRACE})) {
+    report("Missing } in class declaration statement", "", get_current_line());
+    return nullptr;
+  }
+  auto c = std::make_shared<Class>();
+  c->name = name;
+  c->methods = methods;
+  return c;
+}
+
 std::shared_ptr<Stmt> Parser::parse_declaration() {
   // We seperate the declaration type statements from other statements because
   // we don't want to allow certain kinds of syntax like this:
@@ -614,6 +651,8 @@ std::shared_ptr<Stmt> Parser::parse_declaration() {
     s = parse_var_declaration();
   } else if (match({FUN})) {
     s = parse_function();
+  } else if (match({CLASS})) {
+    s = parse_class();
   } else {
     // else parse it as a statement
     s = parse_statement();

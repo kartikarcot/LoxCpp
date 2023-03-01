@@ -1,4 +1,5 @@
 #include "parser.h"
+#include "scanner.h"
 #include "gtest/gtest.h"
 
 TEST(ParserTest, test_parser_1) {
@@ -242,6 +243,31 @@ TEST(ParserTest, test_parser_10) {
   EXPECT_TRUE(stmts.size() == 1);
   EXPECT_TRUE(dynamic_pointer_cast<If>(stmts[0]) != nullptr);
   EXPECT_TRUE(dynamic_pointer_cast<If>(stmts[0])->condition != nullptr);
+}
+
+// A test to parse a class
+TEST(ParserTest, test_parser_11) {
+  std::string test_code = R"(
+        class Test {
+            test() {
+                print("Hello World");
+            }
+            helper(a, b) {
+                return a + b;
+            }
+        }
+    )";
+  Scanner scanner;
+  scanner.init(test_code);
+  scanner.scan();
+  Parser parser;
+  parser.init(scanner.get_tokens());
+  std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_stmts();
+  std::cout << "stmts size: " << stmts.size() << std::endl;
+  EXPECT_TRUE(stmts.size() == 1);
+  EXPECT_TRUE(dynamic_pointer_cast<Class>(stmts[0]) != nullptr);
+  // check there are two methods
+  EXPECT_TRUE(dynamic_pointer_cast<Class>(stmts[0])->methods.size() == 2);
 }
 
 int main(int argc, char **argv) {

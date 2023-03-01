@@ -17,3 +17,4 @@ If         => std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch,
 While      => std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body
 Function   => std::shared_ptr<Token> name, std::vector<std::shared_ptr<Token>> params, std::vector<std::shared_ptr<Stmt>> body
 Return     => std::shared_ptr<Token> keyword, std::shared_ptr<Expr> value
+Class       => std::shared_ptr<Token> name, std::vector<std::shared_ptr<Stmt>> methods

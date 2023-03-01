@@ -42,6 +42,7 @@ public:
   std::shared_ptr<Stmt> parse_for();
   std::shared_ptr<Stmt> parse_function();
   std::shared_ptr<Stmt> parse_return();
+  std::shared_ptr<Stmt> parse_class();
   std::shared_ptr<Expr> finish_call(std::shared_ptr<Expr> expr);
   bool parse_block(std::vector<std::shared_ptr<Stmt>> &statements);
 };

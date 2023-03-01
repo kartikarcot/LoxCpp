@@ -164,3 +164,12 @@ public:
 
   ~Return() {}
 };
+
+class Class : public Stmt {
+public:
+  std::shared_ptr<Token> name;
+  std::vector<std::shared_ptr<Stmt>> methods;
+  virtual std::string print_type() { return "Class"; }
+
+  ~Class() {}
+};
