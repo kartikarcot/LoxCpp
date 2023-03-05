@@ -13,7 +13,7 @@ target_compile_definitions(test_env PUBLIC UNIT_TEST)
 add_test(NAME test_env COMMAND test_env)
 
 add_executable(test_parser test_parser.cpp)
-target_link_libraries(test_parser PRIVATE parser gtest)
+target_link_libraries(test_parser PRIVATE parser gtest scanner)
 target_compile_definitions(test_parser PUBLIC UNIT_TEST)
 add_test(NAME test_parser COMMAND test_parser)
 

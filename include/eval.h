@@ -7,9 +7,9 @@
 class Evaluator {
 public:
   Evaluator();
+  std::vector<std::shared_ptr<Stmt>> stmts_;
   std::shared_ptr<Environment> globals;
   std::shared_ptr<Environment> env;
-  std::vector<std::shared_ptr<Stmt>> stmts_;
   std::unordered_map<const Expr *, int> locals;
   Object visit_unary(const Unary *u);
   Object visit_binary(const Binary *b);
@@ -28,6 +28,7 @@ public:
   Object visit(const Expr *e);
   void visit(const Stmt *s);
   void visit_function(const Function *f);
+  void visit_class(const Class *c);
   void visit_return(const Return *r);
   void execute_block(std::vector<std::shared_ptr<Stmt>> stmts,
                      std::shared_ptr<Environment> env);

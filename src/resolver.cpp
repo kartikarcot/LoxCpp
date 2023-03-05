@@ -16,6 +16,9 @@ void Resolver::visit(const Stmt *stmt) {
   if (auto f = dynamic_cast<const Function *>(stmt)) {
     visit_function(f);
   }
+  if (auto c = dynamic_cast<const Class *>(stmt)) {
+    visit_class(c);
+  }
   if (auto expr = dynamic_cast<const Expression *>(stmt)) {
     visit_expr_stmt(expr);
   }
@@ -234,4 +237,10 @@ void Resolver::visit_logical(const Logical *l) {
 void Resolver::visit_unary(const Unary *u) {
   resolve(u->right.get());
   return;
+}
+
+void Resolver::visit_class(const Class *c) {
+  // Adds the class to the scope
+  declare(c->name.get());
+  define(c->name.get());
 }
