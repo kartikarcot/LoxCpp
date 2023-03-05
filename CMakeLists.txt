@@ -19,3 +19,15 @@ enable_testing()
 
 add_subdirectory(src)
 add_subdirectory(test)
+
+# copy the template folder to the build directory
+file(COPY templates DESTINATION ${CMAKE_BINARY_DIR})
+# copy the server.py to the build directory
+file(COPY server.py DESTINATION ${CMAKE_BINARY_DIR})
+
+# build target to start the server.py
+add_custom_target(run_server
+    COMMAND python3 server.py
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    COMMENT "Starting server.py"
+)
