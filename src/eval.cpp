@@ -1,5 +1,6 @@
 #include "eval.h"
 #include "logger.h"
+#include "loxclass.h"
 #include "loxfun.h"
 #include "object.h"
 #include "printer.h"
@@ -25,15 +26,18 @@ double time_now() {
 // A callable object that can be used to get the current time
 class Clock : public Callable {
 public:
+  std::string name = "clock";
   Object call(std::vector<Object> args, Evaluator *) override {
     return Object(FLOAT, new float(time_now()));
   }
+  Clock *Clone() override { return new Clock(*this); }
   int arity() override { return 0; }
 };
 
 // A function to convert an object to string
 class ToString : public Callable {
 public:
+  std::string name = "str";
   Object call(std::vector<Object> args, Evaluator *) override {
     if (args.size() != 1) {
       CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
@@ -42,6 +46,7 @@ public:
     }
     return Object(STR, strdup(Object::object_to_str(args[0]).c_str()));
   }
+  ToString *Clone() override { return new ToString(*this); }
   int arity() override { return 1; }
 };
 
@@ -624,6 +629,12 @@ void Evaluator::visit(const Stmt *s) {
     visit_function(f);
     return;
   }
+  const Class *c = nullptr;
+  c = dynamic_cast<const Class *>(s);
+  if (c != nullptr) {
+    visit_class(c);
+    return;
+  }
   const Return *r = nullptr;
   r = dynamic_cast<const Return *>(s);
   if (r != nullptr) {
@@ -725,6 +736,20 @@ void Evaluator::visit_function(const Function *f) {
   return;
 }
 
+void Evaluator::visit_class(const Class *c) {
+  CLog::FLog(LogLevel::DEBUG, LogCategory::EVAL, "Visiting class %s",
+             c->name->literal_string.c_str());
+  env->define(c->name->literal_string, Object());
+  auto class_ptr = new LoxClass(c->name->literal_string);
+  bool ret =
+      env->assign(c->name->literal_string, Object(CLASS_TYPE, class_ptr));
+  if (!ret) {
+    CLog::FLog(LogLevel::ERROR, LogCategory::EVAL,
+               "Could not assign the class to the environment");
+  }
+  return;
+}
+
 void Evaluator::visit_return(const Return *r) {
   Object value;
   if (r->value != nullptr) {
@@ -735,4 +760,9 @@ void Evaluator::visit_return(const Return *r) {
 
 void Evaluator::resolve(const Expr *e, int depth) { locals.insert({e, depth}); }
 
-Evaluator::~Evaluator() {}
+Evaluator::~Evaluator() {
+  globals.reset();
+  env.reset();
+  locals.clear();
+  stmts_.clear();
+}

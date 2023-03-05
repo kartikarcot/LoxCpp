@@ -28,6 +28,7 @@ public:
   // statements
   void visit_block(const Block *block);
   void visit_function(const Function *f);
+  void visit_class(const Class *c);
   void visit_if(const If *if_stmt);
   void visit_print(const Print *prt);
   void visit_return(const Return *ret);

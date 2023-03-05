@@ -9,8 +9,9 @@ LoxFunction::LoxFunction(const Function *f,
                          std::shared_ptr<Environment> closure) {
   this->f = f;
   this->closure = closure;
+  this->name = f->name->literal_string;
   CLog::FLog(LogLevel::DEBUG, LogCategory::FUN, "Creating function %s",
-             f->name->literal_string.c_str());
+             this->f->name->literal_string.c_str());
   CLog::FLog(LogLevel::DEBUG, LogCategory::FUN,
              "Closure has the following variables:\n%s",
              this->closure->print().c_str());
@@ -43,6 +44,5 @@ Object LoxFunction::call(std::vector<Object> args, Evaluator *eval) {
 int LoxFunction::arity() { return f->params.size(); }
 
 LoxFunction::~LoxFunction() {
-  // we will delete environs in the interpreter
-  // at the block level
+  // we don't own function pointer
 }
