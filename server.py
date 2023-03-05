@@ -37,7 +37,7 @@ def run_python():
             # run the binary on the file
             # the output will be a byte string
             # we will decode it to a string
-            output = subprocess.check_output(["cpplox", f.name])
+            output = subprocess.check_output(["./src/cpplox", f.name])
             output = output.decode("utf-8")
             # delete the file
             os.remove(f.name)
@@ -50,4 +50,4 @@ if __name__ == "__main__":
     # use the port from the environment variable
     # if it is not set, use port 5000
     port = int(os.environ.get("PORT", 5000))
-    app.run(port=port)
+    app.run(host='0.0.0.0',port=port)
