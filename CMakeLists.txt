@@ -21,13 +21,22 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 # copy the template folder to the build directory
+# ensure that the templates folder is copied to the build directory
+# everytime the project is built
 file(COPY templates DESTINATION ${CMAKE_BINARY_DIR})
+
 # copy the server.py to the build directory
 file(COPY server.py DESTINATION ${CMAKE_BINARY_DIR})
 
-# build target to start the server.py
-add_custom_target(run_server
-    COMMAND python3 server.py
+
+# build target to start the server.py add dependency to the lox target
+# so that the server is started after the lox executable is built and copied
+# to the build directory
+
+add_custom_target(
+    start_server
+    COMMAND cp -r ../templates ./ && cp ../server.py ./ && python3 server.py
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    DEPENDS lox
     COMMENT "Starting server.py"
 )

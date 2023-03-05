@@ -6,7 +6,8 @@
       background-color: #f5f5f5;
     }
 
-    h1 {
+    h1,
+    p {
       text-align: center;
       margin: 1rem 0;
     }
@@ -62,12 +63,54 @@
     }
   </style>
   <head>
-    <title>Python Runner</title>
+    <title>Lox Runner</title>
   </head>
   <body>
     <h1>Lox Runner</h1>
-
     <main>
+      <p>
+        <a href="https://craftinginterpreters.com/the-lox-language.html">
+          Lox
+        </a>
+        is a simple programming language created by Bob Nystrom for his book
+        <a href="https://craftinginterpreters.com/">Crafting Interpreters</a>. I
+        implemented it in C++. Atleast I tried to. I am still working on it :)
+      </p>
+      <pre class="line-numbers">
+     <code class="language-css">
+        print("Hello World");
+        // -------------------------------------
+        fun pow(base, exp) {
+            if (exp == 1) {
+                return base;
+            }
+            return base * pow(base, exp - 1);
+        }
+        // -------------------------------------
+        fun print10() {
+            var print_str = "";
+            fun print_rec(i) {
+                if (i > 0) {
+                    print_str = print_str + str(i) + " ";
+                    print_rec(i-1);
+                }
+            }
+            print_rec(10);
+            return print_str;
+        }
+
+        print(print10());
+        print("2 raised to 10 is ", pow(2,10));
+        // -------------------------------------
+        {
+            print("-------------------FOR--------------------");
+            for (var a = 1; a < 10; a = a+1) {
+                print(a);
+            }
+            print("------------------------------------------");
+        }
+     </code>
+     </pre>
       <h2>Enter your Lox code:</h2>
       <textarea id="lox-code" rows="10" cols="50"></textarea>
       <div>
@@ -97,6 +140,7 @@
           .catch((error) => {
             output.innerText = "Error: " + error;
           });
+          // end of fetch
       }
     </script>
   </body>
