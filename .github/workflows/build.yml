@@ -17,13 +17,3 @@ jobs:
       run: cd build && make && make && make
     - name: run tests
       run: make test
-  build-image:
-    runs-on: ubuntu-latest
-    steps:
-    - name: Install Heroku
-      run: npm install -g heroku
-    - uses: actions/checkout@v1
-    - name: Login to Heroku Container registry
-      env: 
-        HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
-      run: heroku container:login
