@@ -1,17 +1,17 @@
-name: Heroku Deploy
-
+name: Publish To Heroku With Docker
 on:
   push:
-    branches:
-      - master
+    branches: [master]
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: CDNievas/heroku-action@v1.0 # This is the action
+      - name: Checkout Dir
+        uses: actions/checkout@v2
+      - name: Heroku Deployment
+        uses: ElayGelbart/Heroku-Auto-Deployment@v1.0.6
         with:
-          heroku_email: "askarthikkumar@gmail.com"
-          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
-          heroku_app_name: "cpplox"
+          herokuApiKey: ${{ secrets.HEROKU_API_KEY}}
+          herokuAppName: cpplox
+          useDocker: true
