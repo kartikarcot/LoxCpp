@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     sudo \
-    clang-12 \
+    clang \
     ccls \
     gdb \
     make \
