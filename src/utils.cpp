@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 std::string read_file_into_string(const std::string &file_path) {

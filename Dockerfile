@@ -5,6 +5,7 @@ FROM ubuntu:latest
 RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
+    python3.12-venv \
     sudo \
     clang \
     ccls \
@@ -33,6 +34,6 @@ RUN mkdir -p /app/build && \
     cmake .. && \
     make
 
-# # Command to run server.py
+# Command to run server.py
 WORKDIR /app/build
 CMD ["make", "start_server"]
