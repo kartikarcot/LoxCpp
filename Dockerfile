@@ -15,8 +15,12 @@ RUN apt-get update && apt-get install -y \
     bash \
     cmake
 
-# Install Flask for Python 3.8
-RUN pip3 install Flask
+# Create and activate virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Flask in the virtual environment
+RUN pip install Flask
 
 # Copy source code into container
 COPY ./ /app/
